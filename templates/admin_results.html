@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Results | Student Management System</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <style>
+        body {
+            background: #f4f7fb;
+            font-family: Arial, sans-serif;
+        }
+
+        .page-header {
+            background: #172554;
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0,0,0,.06);
+            height: 100%;
+        }
+
+        .stat-value {
+            font-size: 26px;
+            font-weight: bold;
+            color: #1d4ed8;
+        }
+
+        .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0,0,0,.06);
+        }
+
+        .table th {
+            background: #172554;
+            color: white;
+            white-space: nowrap;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container-fluid px-3 px-md-4 py-4">
+
+    <div class="page-header d-flex flex-wrap justify-content-between
+                align-items-center gap-3">
+        <div>
+            <h2 class="mb-1">Student Examination Results</h2>
+            <p class="mb-0">View results for all registered students.</p>
+        </div>
+
+        <a href="{{ url_for('admin_home') }}"
+           class="btn btn-light">Back to Dashboard</a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close"
+                        data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endwith %}
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div>Total Results</div>
+                <div class="stat-value">{{ total_results }}</div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div>Total Marks Obtained</div>
+                <div class="stat-value">{{ total_obtained }}</div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div>Total Maximum Marks</div>
+                <div class="stat-value">{{ total_maximum }}</div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div>Overall Percentage</div>
+                <div class="stat-value">{{ overall_percentage }}%</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <div class="d-flex flex-wrap justify-content-between
+                    align-items-center gap-3 mb-3">
+            <h4 class="mb-0">All Student Results</h4>
+
+            <input type="text" id="resultSearch"
+                   class="form-control"
+                   style="max-width: 320px;"
+                   placeholder="Search student, subject or exam...">
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover" id="resultsTable">
+                <thead>
+                <tr>
+                    <th>Student ID</th>
+                    <th>Student Name</th>
+                    <th>Subject</th>
+                    <th>Exam</th>
+                    <th>Obtained</th>
+                    <th>Maximum</th>
+                    <th>Percentage</th>
+                    <th>Status</th>
+                    <th>Exam Date</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                {% for result in results %}
+                    <tr>
+                        <td>{{ result.student_code }}</td>
+                        <td>{{ result.first_name }} {{ result.last_name }}</td>
+                        <td>
+                            {{ result.subject_name }}
+                            ({{ result.subject_code }})
+                        </td>
+                        <td>{{ result.exam_name }}</td>
+                        <td>{{ result.marks_obtained }}</td>
+                        <td>{{ result.max_marks }}</td>
+                        <td>{{ result.percentage }}%</td>
+                        <td>
+                            {% if result.status == "Pass" %}
+                                <span class="badge bg-success">Pass</span>
+                            {% else %}
+                                <span class="badge bg-danger">Fail</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ result.exam_date or "-" }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center py-4">
+                            No examination results found.
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <p class="text-muted mt-2 mb-0" id="resultCount">
+            Showing {{ total_results }} result(s)
+        </p>
+    </div>
+
+</div>
+
+<script>
+    const searchInput = document.getElementById("resultSearch");
+    const tableRows = document.querySelectorAll("#resultsTable tbody tr");
+    const resultCount = document.getElementById("resultCount");
+
+    searchInput.addEventListener("input", function () {
+        const query = this.value.toLowerCase().trim();
+        let visibleCount = 0;
+
+        tableRows.forEach(function (row) {
+            const matches = row.innerText.toLowerCase().includes(query);
+            row.style.display = matches ? "" : "none";
+
+            if (matches && row.cells.length > 1) {
+                visibleCount++;
+            }
+        });
+
+        resultCount.textContent = "Showing " + visibleCount + " result(s)";
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

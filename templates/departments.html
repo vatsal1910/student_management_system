@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Departments</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+</head>
+
+<body>
+
+<header class="dashboard-header">
+
+    <div>
+        <h1>Student Management System</h1>
+        <p>Department Management</p>
+    </div>
+
+    <div class="header-right">
+
+        <a
+            href="{{ url_for('admin_home') }}"
+            class="logout-btn"
+        >
+            Dashboard
+        </a>
+
+        <a
+            href="{{ url_for('admin_logout') }}"
+            class="logout-btn"
+        >
+            Logout
+        </a>
+
+    </div>
+
+</header>
+
+
+<main class="dashboard-content">
+
+    <h2>Department Management</h2>
+
+
+    <!-- FLASH MESSAGES -->
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+
+        {% if messages %}
+
+            {% for category, message in messages %}
+
+                <div class="alert {{ category }}">
+                    {{ message }}
+                </div>
+
+            {% endfor %}
+
+        {% endif %}
+
+    {% endwith %}
+
+
+    <!-- ADD DEPARTMENT -->
+
+    <div class="search-container">
+
+        <h3>Add New Department</h3>
+
+        <form
+            method="POST"
+            action="{{ url_for('add_department') }}"
+            class="search-form"
+        >
+
+            <input
+                type="text"
+                name="department_code"
+                placeholder="Department Code (e.g. CS)"
+                class="search-input"
+                required
+            >
+
+            <input
+                type="text"
+                name="department_name"
+                placeholder="Enter Department Name"
+                class="search-input"
+                required
+            >
+
+            <button
+                type="submit"
+                class="search-btn"
+            >
+                + Add Department
+            </button>
+
+        </form>
+
+    </div>
+
+
+    <!-- DEPARTMENT LIST -->
+
+    <div class="details-container">
+
+        <h3>All Departments</h3>
+
+        {% if departments %}
+
+        <div style="overflow-x:auto;">
+
+            <table class="student-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>#</th>
+
+                        <th>Department Code</th>
+
+                        <th>Department Name</th>
+
+                        <th>Actions</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for department in departments %}
+
+                    <tr>
+
+                        <td>
+                            {{ loop.index }}
+                        </td>
+
+                        <td>
+                            <strong>
+                                {{ department.department_code }}
+                            </strong>
+                        </td>
+
+                        <td>
+                            {{ department.department_name }}
+                        </td>
+
+                        <td>
+
+                            <!-- EDIT -->
+
+                            <a
+                                href="{{ url_for(
+                                    'edit_department',
+                                    department_id=department.id
+                                ) }}"
+                                class="dashboard-btn"
+                            >
+                                Edit
+                            </a>
+
+
+                            <!-- DELETE -->
+
+                            <form
+                                method="POST"
+                                action="{{ url_for(
+                                    'delete_department',
+                                    department_id=department.id
+                                ) }}"
+                                style="display:inline;"
+                                onsubmit="return confirm(
+                                    'Are you sure you want to delete this department?'
+                                );"
+                            >
+
+                                <button
+                                    type="submit"
+                                    class="cancel-btn"
+                                >
+                                    Delete
+                                </button>
+
+                            </form>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        {% else %}
+
+            <p>
+                No departments found.
+            </p>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- BACK TO DASHBOARD -->
+
+    <div style="margin-top:20px;">
+
+        <a
+            href="{{ url_for('admin_home') }}"
+            class="cancel-btn"
+        >
+            ← Back to Dashboard
+        </a>
+
+    </div>
+
+</main>
+
+</body>
+
+</html>

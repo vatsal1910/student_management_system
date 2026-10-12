@@ -1,0 +1,503 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Management | Student Management System</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 25px;
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 28px;
+        }
+
+        .muted {
+            color: #64748b;
+        }
+
+        .card {
+            background: white;
+            padding: 24px;
+            margin-bottom: 25px;
+            border-radius: 14px;
+            box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: white;
+            font-size: 14px;
+        }
+
+        input:focus,
+        select:focus {
+            outline: 2px solid #bfdbfe;
+            border-color: #2563eb;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 11px 16px;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .secondary {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        .danger {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 760px;
+        }
+
+        th,
+        td {
+            padding: 14px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+
+        th {
+            background: #f8fafc;
+            color: #475569;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .present {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .absent {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .message {
+            padding: 12px 15px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .empty {
+            padding: 25px;
+            text-align: center;
+            color: #64748b;
+        }
+
+        .inline-form {
+            display: inline;
+        }
+
+        /* Attendance Percentage Summary */
+        .attendance-summary h2 {
+            margin-bottom: 18px;
+        }
+
+        .percentage-badge {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .good-attendance {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .low-attendance {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .summary-note {
+            margin-top: 12px;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        @media (max-width: 650px) {
+            body {
+                padding: 14px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 23px;
+            }
+
+            .card {
+                padding: 17px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <header class="header">
+        <div>
+            <h1>Attendance Management</h1>
+            <div class="muted">
+                Record and manage student attendance.
+            </div>
+        </div>
+
+        <a class="btn secondary" href="{{ url_for('admin_home') }}">
+            Back to Dashboard
+        </a>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="message">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <!-- Mark Attendance Form -->
+    <section class="card">
+        <h2>Mark Attendance</h2>
+        <p class="muted">
+            Select a student, subject, date, and attendance status.
+        </p>
+
+        <form action="{{ url_for('add_attendance') }}" method="POST">
+            <div class="form-grid">
+
+                <div class="field">
+                    <label for="student_id">Student *</label>
+
+                    <select id="student_id" name="student_id" required>
+                        <option value="">Select Student</option>
+
+                        {% for student in students %}
+                            <option value="{{ student.id }}">
+                                {{ student.student_id }} -
+                                {{ student.first_name }}
+                                {{ student.last_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="subject_id">Subject *</label>
+
+                    <select id="subject_id" name="subject_id" required>
+                        <option value="">Select Subject</option>
+
+                        {% for subject in subjects %}
+                            <option value="{{ subject.id }}">
+                                {{ subject.subject_name }}
+                                {% if subject.subject_code %}
+                                    ({{ subject.subject_code }})
+                                {% endif %}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="attendance_date">
+                        Attendance Date *
+                    </label>
+
+                    <input
+                        type="date"
+                        id="attendance_date"
+                        name="attendance_date"
+                        required
+                    >
+                </div>
+
+                <div class="field">
+                    <label for="status">Status *</label>
+
+                    <select id="status" name="status" required>
+                        <option value="">Select Status</option>
+                        <option value="Present">Present</option>
+                        <option value="Absent">Absent</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="btn primary">
+                    Save Attendance
+                </button>
+
+                <button type="reset" class="btn secondary">
+                    Clear Form
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <!-- Attendance Records -->
+    <section class="card">
+        <h2>Attendance Records</h2>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Student ID</th>
+                        <th>Student Name</th>
+                        <th>Subject</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for record in attendance_records %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ record.student_id }}</td>
+
+                        <td>
+                            {{ record.first_name }}
+                            {{ record.last_name }}
+                        </td>
+
+                        <td>
+                            {{ record.subject_name }}
+                            {% if record.subject_code %}
+                                ({{ record.subject_code }})
+                            {% endif %}
+                        </td>
+
+                        <td>{{ record.attendance_date }}</td>
+
+                        <td>
+                            {% if record.status == 'Present' %}
+                                <span class="status present">
+                                    Present
+                                </span>
+                            {% else %}
+                                <span class="status absent">
+                                    Absent
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <div class="actions" style="margin-top: 0;">
+                                <a
+                                    class="btn secondary"
+                                    href="{{ url_for(
+                                        'edit_attendance',
+                                        attendance_id=record.id
+                                    ) }}"
+                                >
+                                    Edit
+                                </a>
+
+                                <form
+                                    class="inline-form"
+                                    action="{{ url_for(
+                                        'delete_attendance',
+                                        attendance_id=record.id
+                                    ) }}"
+                                    method="POST"
+                                    onsubmit="return confirm(
+                                        'Delete this attendance record?'
+                                    );"
+                                >
+                                    <button
+                                        type="submit"
+                                        class="btn danger"
+                                    >
+                                        Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="empty">
+                            No attendance records found.
+                            Add the first record above.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Attendance Percentage Summary -->
+    <section class="card attendance-summary">
+        <h2>Attendance Percentage Summary</h2>
+
+        <p class="muted">
+            Attendance is calculated separately for each student
+            and subject using the attendance records saved in the system.
+        </p>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student ID</th>
+                        <th>Student Name</th>
+                        <th>Subject</th>
+                        <th>Total Classes</th>
+                        <th>Present</th>
+                        <th>Absent</th>
+                        <th>Attendance %</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for item in attendance_summary %}
+                    <tr>
+                        <td>{{ item.student_id }}</td>
+
+                        <td>
+                            {{ item.first_name }}
+                            {{ item.last_name }}
+                        </td>
+
+                        <td>
+                            {{ item.subject_name }}
+                            {% if item.subject_code %}
+                                ({{ item.subject_code }})
+                            {% endif %}
+                        </td>
+
+                        <td>{{ item.total_classes }}</td>
+                        <td>{{ item.present_classes }}</td>
+                        <td>{{ item.absent_classes }}</td>
+
+                        <td>
+                            {% if item.attendance_percentage is not none %}
+                                <span class="percentage-badge {% if item.attendance_percentage < 75 %}low-attendance{% else %}good-attendance{% endif %}">
+                                    {{ item.attendance_percentage }}%
+                                </span>
+                            {% else %}
+                                <span class="muted">N/A</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="empty">
+                            No attendance summary available yet.
+                            Add attendance records first.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <p class="summary-note">
+            Below 75% is highlighted in red;
+            75% and above is highlighted in green.
+        </p>
+    </section>
+
+</div>
+</body>
+</html>

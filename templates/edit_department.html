@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Edit Department</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+</head>
+
+<body>
+
+<header class="dashboard-header">
+
+    <div>
+        <h1>Student Management System</h1>
+        <p>Edit Department</p>
+    </div>
+
+    <div class="header-right">
+
+        <a
+            href="{{ url_for('departments') }}"
+            class="logout-btn"
+        >
+            Departments
+        </a>
+
+        <a
+            href="{{ url_for('admin_logout') }}"
+            class="logout-btn"
+        >
+            Logout
+        </a>
+
+    </div>
+
+</header>
+
+
+<main class="dashboard-content">
+
+    <div class="details-container">
+
+        <h2>Edit Department</h2>
+
+        <form
+            method="POST"
+            class="student-form"
+        >
+
+            <!-- DEPARTMENT CODE -->
+
+            <div class="form-group">
+
+                <label>
+                    Department Code
+                </label>
+
+                <input
+                    type="text"
+                    name="department_code"
+                    value="{{ department.department_code }}"
+                    required
+                >
+
+            </div>
+
+
+            <!-- DEPARTMENT NAME -->
+
+            <div class="form-group">
+
+                <label>
+                    Department Name
+                </label>
+
+                <input
+                    type="text"
+                    name="department_name"
+                    value="{{ department.department_name }}"
+                    required
+                >
+
+            </div>
+
+
+            <!-- BUTTONS -->
+
+            <div class="form-actions">
+
+                <button
+                    type="submit"
+                    class="dashboard-btn"
+                >
+                    Update Department
+                </button>
+
+                <a
+                    href="{{ url_for('departments') }}"
+                    class="cancel-btn"
+                >
+                    Cancel
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</main>
+
+</body>
+</html>

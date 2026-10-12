@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Marks Management | Student Management System</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        .marks-container {
+            max-width: 1300px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .marks-panel {
+            background: #ffffff;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .marks-panel h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .marks-form {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .form-group label {
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 11px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: 2px solid #93c5fd;
+            border-color: #2563eb;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .marks-table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .marks-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1050px;
+        }
+
+        .marks-table th,
+        .marks-table td {
+            padding: 13px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: middle;
+        }
+
+        .marks-table th {
+            background: #f3f4f6;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .marks-table tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .submit-btn,
+        .back-btn,
+        .edit-btn,
+        .delete-btn {
+            display: inline-block;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .submit-btn {
+            background: #2563eb;
+            color: #ffffff;
+        }
+
+        .submit-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .back-btn {
+            background: #4b5563;
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+
+        .edit-btn {
+            background: #dbeafe;
+            color: #1d4ed8;
+            margin-right: 5px;
+        }
+
+        .edit-btn:hover {
+            background: #bfdbfe;
+        }
+
+        .delete-btn {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .delete-btn:hover {
+            background: #fecaca;
+        }
+
+        .action-form {
+            display: inline-block;
+            margin: 0;
+        }
+
+        .flash-message {
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+        }
+
+        .flash-message.success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .flash-message.danger,
+        .flash-message.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .flash-message.warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .flash-message.info,
+        .flash-message.message {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-pass {
+            color: #15803d;
+            font-weight: 600;
+        }
+
+        .status-low {
+            color: #b91c1c;
+            font-weight: 600;
+        }
+
+        .empty-message {
+            padding: 25px;
+            text-align: center !important;
+            color: #6b7280;
+        }
+
+        .actions-cell {
+            white-space: nowrap;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: -3px;
+        }
+
+        @media (max-width: 650px) {
+            .marks-container {
+                padding: 12px;
+            }
+
+            .marks-form {
+                grid-template-columns: 1fr;
+            }
+
+            .full-width {
+                grid-column: auto;
+            }
+
+            .marks-panel {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="dashboard-header">
+    <div>
+        <h1>Student Management System</h1>
+        <p>Admin Marks Management</p>
+    </div>
+
+    <div class="header-right">
+        <a href="{{ url_for('admin_home') }}" class="logout-btn">
+            Dashboard
+        </a>
+    </div>
+</header>
+
+<main class="marks-container">
+
+    <a href="{{ url_for('admin_home') }}" class="back-btn">
+        &#8592; Back to Dashboard
+    </a>
+
+    <!-- FLASH MESSAGES -->
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message {{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- ADD MARKS FORM -->
+
+    <section class="marks-panel">
+
+        <h2>Add Student Marks</h2>
+
+        {% if students and subjects %}
+
+        <form action="{{ url_for('add_marks') }}"
+              method="POST"
+              class="marks-form"
+              id="marksForm">
+
+            <div class="form-group">
+                <label for="student_id">Select Student *</label>
+
+                <select id="student_id" name="student_id" required>
+                    <option value="">-- Select Student --</option>
+
+                    {% for student in students %}
+                    <option value="{{ student.id }}">
+                        {{ student.student_id }} -
+                        {{ student.first_name }}
+                        {{ student.last_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="subject_id">Select Subject *</label>
+
+                <select id="subject_id" name="subject_id" required>
+                    <option value="">-- Select Subject --</option>
+
+                    {% for subject in subjects %}
+                    <option value="{{ subject.id }}"
+                            data-max-marks="{{ subject.max_marks or 100 }}">
+                        {{ subject.subject_code }} -
+                        {{ subject.subject_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="exam_name">Exam Name *</label>
+
+                <input type="text"
+                       id="exam_name"
+                       name="exam_name"
+                       placeholder="e.g. Midterm, Final Exam"
+                       maxlength="100"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label for="exam_date">Exam Date</label>
+
+                <input type="date"
+                       id="exam_date"
+                       name="exam_date">
+            </div>
+
+            <div class="form-group">
+                <label for="max_marks">Maximum Marks *</label>
+
+                <input type="number"
+                       id="max_marks"
+                       name="max_marks"
+                       min="0.01"
+                       max="999.99"
+                       step="0.01"
+                       value="100"
+                       required>
+
+                <span class="help-text">
+                    Defaults to the maximum marks configured for the subject.
+                </span>
+            </div>
+
+            <div class="form-group">
+                <label for="marks_obtained">Marks Obtained *</label>
+
+                <input type="number"
+                       id="marks_obtained"
+                       name="marks_obtained"
+                       min="0"
+                       max="100"
+                       step="0.01"
+                       placeholder="Enter marks obtained"
+                       required>
+            </div>
+
+            <div class="full-width">
+                <button type="submit" class="submit-btn">
+                    Save Marks
+                </button>
+            </div>
+
+        </form>
+
+        {% else %}
+
+        <p>
+            Please add at least one student and one subject before
+            entering marks.
+        </p>
+
+        {% endif %}
+
+    </section>
+
+    <!-- MARKS RECORDS TABLE -->
+
+    <section class="marks-panel">
+
+        <h2>Student Marks Records</h2>
+
+        <div class="marks-table-wrapper">
+
+            <table class="marks-table">
+
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Student ID</th>
+                        <th>Student Name</th>
+                        <th>Subject</th>
+                        <th>Exam</th>
+                        <th>Marks</th>
+                        <th>Percentage</th>
+                        <th>Exam Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for record in marks_records %}
+
+                    <tr>
+                        <td>{{ loop.index }}</td>
+
+                        <td>{{ record.student_code }}</td>
+
+                        <td>
+                            {{ record.first_name }}
+                            {{ record.last_name }}
+                        </td>
+
+                        <td>
+                            {{ record.subject_code }} -
+                            {{ record.subject_name }}
+                        </td>
+
+                        <td>{{ record.exam_name }}</td>
+
+                        <td>
+                            {{ record.marks_obtained }}
+                            /
+                            {{ record.max_marks }}
+                        </td>
+
+                        <td>
+                            {% set maximum = record.max_marks|float %}
+                            {% set obtained = record.marks_obtained|float %}
+                            {% set percentage =
+                                (obtained / maximum * 100)
+                                if maximum > 0 else 0 %}
+
+                            <span class="{{ 'status-pass' if percentage >= 40 else 'status-low' }}">
+                                {{ "%.2f"|format(percentage) }}%
+                            </span>
+                        </td>
+
+                        <td>
+                            {{ record.exam_date.strftime('%d-%m-%Y')
+                               if record.exam_date else 'Not specified' }}
+                        </td>
+
+                        <td class="actions-cell">
+
+                            <a href="{{ url_for('edit_marks', mark_id=record.id) }}"
+                               class="edit-btn">
+                                Edit
+                            </a>
+
+                            <form method="POST"
+                                  action="{{ url_for('delete_marks', mark_id=record.id) }}"
+                                  class="action-form"
+                                  onsubmit="return confirm('Are you sure you want to delete these marks? This action cannot be undone.');">
+
+                                <button type="submit" class="delete-btn">
+                                    Delete
+                                </button>
+
+                            </form>
+
+                        </td>
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="9" class="empty-message">
+                            No marks records found. Add marks using the form above.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</main>
+
+<script>
+    const subjectSelect = document.getElementById("subject_id");
+    const maxMarksInput = document.getElementById("max_marks");
+    const obtainedInput = document.getElementById("marks_obtained");
+    const marksForm = document.getElementById("marksForm");
+
+    function validateMarks() {
+        maxMarksInput.setCustomValidity("");
+        obtainedInput.setCustomValidity("");
+
+        const maxValue = maxMarksInput.value;
+        const obtainedValue = obtainedInput.value;
+
+        const maxMarks = Number(maxValue);
+        const obtainedMarks = Number(obtainedValue);
+
+        if (
+            maxValue === "" ||
+            !Number.isFinite(maxMarks) ||
+            maxMarks <= 0 ||
+            maxMarks > 999.99
+        ) {
+            maxMarksInput.setCustomValidity(
+                "Maximum marks must be greater than zero and no more than 999.99."
+            );
+            return false;
+        }
+
+        if (obtainedValue !== "") {
+            if (
+                !Number.isFinite(obtainedMarks) ||
+                obtainedMarks < 0
+            ) {
+                obtainedInput.setCustomValidity(
+                    "Marks obtained must be zero or greater."
+                );
+                return false;
+            }
+
+            if (obtainedMarks > maxMarks) {
+                obtainedInput.setCustomValidity(
+                    "Marks obtained cannot exceed maximum marks."
+                );
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    if (subjectSelect && maxMarksInput && obtainedInput) {
+
+        subjectSelect.addEventListener("change", function () {
+            const selectedOption = this.options[this.selectedIndex];
+
+            if (selectedOption && selectedOption.dataset.maxMarks) {
+                const subjectMaxMarks = Number(
+                    selectedOption.dataset.maxMarks
+                );
+
+                if (
+                    Number.isFinite(subjectMaxMarks) &&
+                    subjectMaxMarks > 0 &&
+                    subjectMaxMarks <= 999.99
+                ) {
+                    maxMarksInput.value = subjectMaxMarks;
+                } else {
+                    maxMarksInput.value = 100;
+                }
+
+                obtainedInput.value = "";
+            }
+
+            validateMarks();
+        });
+
+        maxMarksInput.addEventListener("input", validateMarks);
+        obtainedInput.addEventListener("input", validateMarks);
+
+        if (marksForm) {
+            marksForm.addEventListener("submit", function (event) {
+                if (!validateMarks()) {
+                    event.preventDefault();
+
+                    if (!maxMarksInput.checkValidity()) {
+                        maxMarksInput.reportValidity();
+                    } else {
+                        obtainedInput.reportValidity();
+                    }
+                }
+            });
+        }
+    }
+</script>
+
+</body>
+</html>
+```

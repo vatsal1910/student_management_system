@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Results | Student Management System</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        :root {
+            --primary: #4f46e5;
+            --background: #f5f7fb;
+            --text: #1e293b;
+            --muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            background: var(--background);
+            color: var(--text);
+        }
+
+        .header {
+            background: #111827;
+            color: white;
+            padding: 18px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .brand {
+            font-size: 21px;
+            font-weight: 700;
+        }
+
+        .header-subtitle {
+            color: #cbd5e1;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .header-actions a {
+            text-decoration: none;
+            color: white;
+            background: #374151;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .header-actions a:hover {
+            background: #4b5563;
+        }
+
+        .container {
+            width: 92%;
+            max-width: 1250px;
+            margin: 30px auto 45px;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 23px;
+            padding: 10px 15px;
+            background: white;
+            color: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .page-title {
+            margin-bottom: 24px;
+        }
+
+        .page-title h2 {
+            font-size: 29px;
+            margin-bottom: 8px;
+        }
+
+        .page-title p {
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .flash-message {
+            padding: 13px 16px;
+            border-radius: 9px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .flash-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .flash-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .flash-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .flash-info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 22px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.035);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .summary-card::before {
+            content: "";
+            position: absolute;
+            height: 4px;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--primary);
+        }
+
+        .summary-card:nth-child(2)::before {
+            background: #0891b2;
+        }
+
+        .summary-card:nth-child(3)::before {
+            background: #16a34a;
+        }
+
+        .summary-card:nth-child(4)::before {
+            background: #d97706;
+        }
+
+        .card-icon {
+            width: 42px;
+            height: 42px;
+            display: grid;
+            place-items: center;
+            background: #eef2ff;
+            color: var(--primary);
+            border-radius: 11px;
+            font-size: 20px;
+            margin-bottom: 17px;
+        }
+
+        .summary-card:nth-child(2) .card-icon {
+            background: #cffafe;
+            color: #0e7490;
+        }
+
+        .summary-card:nth-child(3) .card-icon {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .summary-card:nth-child(4) .card-icon {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .summary-card h3 {
+            color: var(--muted);
+            font-size: 13px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .summary-card .number {
+            color: var(--text);
+            font-size: 29px;
+            font-weight: 750;
+            overflow-wrap: anywhere;
+        }
+
+        .summary-card small {
+            display: block;
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .panel {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.035);
+        }
+
+        .panel-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+
+        .panel-heading h3 {
+            font-size: 19px;
+        }
+
+        .panel-description {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .overall-progress {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            margin: 22px 0 10px;
+            font-size: 14px;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 12px;
+            border-radius: 20px;
+            background: #e5e7eb;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            border-radius: 20px;
+            background: #16a34a;
+            transition: width 0.5s ease;
+        }
+
+        .progress-bar.low {
+            background: #dc2626;
+        }
+
+        .progress-note {
+            margin-top: 12px;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            min-width: 950px;
+            border-collapse: collapse;
+        }
+
+        th {
+            padding: 15px 12px;
+            background: #f8fafc;
+            color: var(--muted);
+            font-size: 12px;
+            text-align: left;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 15px 12px;
+            font-size: 13px;
+            border-bottom: 1px solid #edf0f5;
+        }
+
+        tbody tr:hover {
+            background: #fafbff;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .subject-code {
+            display: inline-block;
+            background: #f1f5f9;
+            color: #334155;
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .percentage {
+            color: var(--primary);
+            font-weight: 750;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .grade {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .pass {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .fail {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .exam-date {
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 40px 15px;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .empty-icon {
+            font-size: 38px;
+            margin-bottom: 12px;
+        }
+
+        .empty-message h4 {
+            color: var(--text);
+            font-size: 17px;
+            margin-bottom: 8px;
+        }
+
+        .note {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.7;
+            margin-top: 18px;
+        }
+
+        .footer {
+            padding: 20px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        @media (max-width: 1000px) {
+            .summary {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 600px) {
+            .header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .brand {
+                font-size: 18px;
+            }
+
+            .container {
+                margin-top: 22px;
+            }
+
+            .page-title h2 {
+                font-size: 25px;
+            }
+
+            .summary {
+                grid-template-columns: 1fr;
+                gap: 13px;
+            }
+
+            .summary-card {
+                padding: 19px;
+            }
+
+            .panel {
+                padding: 17px 13px;
+            }
+
+            .summary-card .number {
+                font-size: 26px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="header">
+    <div>
+        <div class="brand">Student Management System</div>
+        <p class="header-subtitle">My Examination Results</p>
+    </div>
+
+    <nav class="header-actions">
+        <a href="{{ url_for('student_dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('student_logout') }}">Logout</a>
+    </nav>
+</header>
+
+<main class="container">
+
+    <a href="{{ url_for('student_dashboard') }}" class="back-btn">
+        &#8592; Back to Dashboard
+    </a>
+
+    <section class="page-title">
+        <h2>My Results</h2>
+        <p>Review your examination marks, percentages, grades, and result status.</p>
+    </section>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message flash-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <section class="summary">
+
+        <div class="summary-card">
+            <div class="card-icon">&#128221;</div>
+            <h3>Total Marks Obtained</h3>
+            <p class="number">{{ total_obtained }}</p>
+            <small>Marks earned across recorded exams</small>
+        </div>
+
+        <div class="summary-card">
+            <div class="card-icon">&#128202;</div>
+            <h3>Total Maximum Marks</h3>
+            <p class="number">{{ total_maximum }}</p>
+            <small>Maximum marks across recorded exams</small>
+        </div>
+
+        <div class="summary-card">
+            <div class="card-icon">&#127942;</div>
+            <h3>Overall Percentage</h3>
+            <p class="number">{{ "%.2f"|format(overall_percentage) }}%</p>
+            <small>Combined marks percentage</small>
+        </div>
+
+        <div class="summary-card">
+            <div class="card-icon">&#128221;</div>
+            <h3>Total Exam Records</h3>
+            <p class="number">{{ total_exams }}</p>
+            <small>Examination records available</small>
+        </div>
+
+    </section>
+
+    <section class="panel">
+        <div class="panel-heading">
+            <h3>Overall Performance</h3>
+        </div>
+
+        <p class="panel-description">
+            Your overall percentage based on the marks currently recorded.
+        </p>
+
+        <div class="overall-progress">
+            <span>Overall percentage</span>
+            <strong>{{ "%.2f"|format(overall_percentage) }}%</strong>
+        </div>
+
+        <div class="progress-track">
+            <div
+                id="resultProgress"
+                class="progress-bar"
+                data-percentage="{{ overall_percentage }}">
+            </div>
+        </div>
+
+        <p id="progressNote" class="progress-note">
+            Your performance is calculated from the available examination records.
+        </p>
+    </section>
+
+    <section class="panel">
+
+        <div class="panel-heading">
+            <h3>Examination History</h3>
+            <span class="badge grade">{{ total_exams }} Records</span>
+        </div>
+
+        <p class="panel-description">
+            Your subject-wise marks, examination percentages, grades, and results.
+        </p>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Subject Code</th>
+                        <th>Subject Name</th>
+                        <th>Exam Name</th>
+                        <th>Obtained</th>
+                        <th>Maximum</th>
+                        <th>Percentage</th>
+                        <th>Grade</th>
+                        <th>Status</th>
+                        <th>Exam Date</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for result in results %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+
+                        <td>
+                            <span class="subject-code">
+                                {{ result.subject_code or '-' }}
+                            </span>
+                        </td>
+
+                        <td>{{ result.subject_name }}</td>
+                        <td>{{ result.exam_name }}</td>
+                        <td>{{ result.marks_obtained }}</td>
+                        <td>{{ result.max_marks }}</td>
+
+                        <td class="percentage">
+                            {{ "%.2f"|format(result.percentage) }}%
+                        </td>
+
+                        <td>
+                            <span class="badge grade">{{ result.grade }}</span>
+                        </td>
+
+                        <td>
+                            {% if result.percentage >= 35 %}
+                                <span class="badge pass">Pass</span>
+                            {% else %}
+                                <span class="badge fail">Fail</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="exam-date">
+                            {{ result.exam_date.strftime('%d-%m-%Y')
+                               if result.exam_date else 'Not specified' }}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="10" class="empty-message">
+                            <div class="empty-icon">&#128203;</div>
+                            <h4>No Results Available</h4>
+                            Your results will appear here after the administrator
+                            records your examination marks.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <p class="note">
+            Note: The Pass/Fail indicator uses a 35% example threshold.
+            Your institution's official passing criteria and grading rules
+            should be used for actual academic results.
+        </p>
+
+    </section>
+
+</main>
+
+<footer class="footer">
+    Student Management System &copy; 2026
+</footer>
+
+<script>
+    const resultProgress = document.getElementById("resultProgress");
+    const progressNote = document.getElementById("progressNote");
+
+    if (resultProgress) {
+        let percentage = Number(resultProgress.dataset.percentage) || 0;
+
+        percentage = Math.max(0, Math.min(100, percentage));
+        resultProgress.style.width = percentage + "%";
+
+        if (percentage < 35) {
+            resultProgress.classList.add("low");
+            progressNote.textContent =
+                "Your current percentage is below the example 35% passing threshold.";
+        } else {
+            progressNote.textContent =
+                "Your current percentage is at or above the example 35% passing threshold.";
+        }
+    }
+</script>
+
+</body>
+</html>

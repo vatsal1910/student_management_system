@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Student Profile | Student Management System</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #f4f7fc;
+            color: #1e293b;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        /* Header */
+
+        .profile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            padding: 20px 5%;
+            background: #fff;
+            box-shadow: 0 3px 15px rgba(15, 23, 42, 0.06);
+        }
+
+        .brand h1 {
+            margin: 0;
+            color: #172554;
+            font-size: 26px;
+        }
+
+        .brand p {
+            margin: 5px 0 0;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .header-btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .students-btn {
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .dashboard-btn {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .logout-btn {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        /* Main */
+
+        .profile-container {
+            max-width: 1150px;
+            margin: 0 auto;
+            padding: 32px 22px;
+        }
+
+        .breadcrumb {
+            margin-bottom: 20px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .breadcrumb a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .profile-banner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding: 28px;
+            margin-bottom: 24px;
+            border-radius: 14px;
+            background: linear-gradient(120deg, #1d4ed8, #4338ca);
+            color: #fff;
+            box-shadow: 0 8px 22px rgba(37, 99, 235, 0.15);
+        }
+
+        .profile-identity {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .avatar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            width: 76px;
+            height: 76px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.18);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            font-size: 30px;
+            font-weight: 700;
+        }
+
+        .profile-banner h2 {
+            margin: 0 0 8px;
+            font-size: 27px;
+            overflow-wrap: anywhere;
+        }
+
+        .profile-banner p {
+            margin: 5px 0;
+            color: #dbeafe;
+            font-size: 14px;
+        }
+
+        .student-id-badge {
+            display: inline-block;
+            padding: 7px 11px;
+            border-radius: 7px;
+            background: rgba(255, 255, 255, 0.16);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* Information cards */
+
+        .info-card {
+            margin-bottom: 24px;
+            padding: 25px;
+            border: 1px solid #e5eaf2;
+            border-radius: 13px;
+            background: #fff;
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 0 22px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e5e7eb;
+            color: #172554;
+            font-size: 19px;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 22px;
+        }
+
+        .detail-item {
+            min-width: 0;
+            padding: 14px;
+            border: 1px solid #edf0f5;
+            border-radius: 9px;
+            background: #fbfdff;
+        }
+
+        .detail-item strong {
+            display: block;
+            margin-bottom: 9px;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-item span {
+            display: block;
+            color: #1e293b;
+            font-size: 15px;
+            font-weight: 600;
+            overflow-wrap: anywhere;
+            line-height: 1.5;
+        }
+
+        .detail-item.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .academic-highlight {
+            border-left: 3px solid #2563eb;
+        }
+
+        /* Footer actions */
+
+        .profile-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 26px;
+        }
+
+        .action-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 17px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .back-btn {
+            background: #e2e8f0;
+            color: #334155;
+        }
+
+        .edit-btn {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .page-footer {
+            padding: 20px;
+            color: #94a3b8;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        /* Responsive */
+
+        @media (max-width: 800px) {
+            .details-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 600px) {
+            .profile-header {
+                align-items: flex-start;
+                flex-direction: column;
+                padding: 20px;
+            }
+
+            .header-actions {
+                width: 100%;
+            }
+
+            .header-btn {
+                flex: 1;
+                text-align: center;
+            }
+
+            .profile-container {
+                padding: 22px 13px;
+            }
+
+            .profile-banner {
+                padding: 20px;
+            }
+
+            .profile-identity {
+                align-items: flex-start;
+                gap: 13px;
+            }
+
+            .avatar {
+                width: 56px;
+                height: 56px;
+                font-size: 23px;
+            }
+
+            .profile-banner h2 {
+                font-size: 21px;
+            }
+
+            .details-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .info-card {
+                padding: 17px;
+            }
+
+            .detail-item.full-width {
+                grid-column: auto;
+            }
+
+            .profile-actions {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .action-group {
+                flex-direction: column;
+            }
+
+            .action-btn {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="profile-header">
+    <div class="brand">
+        <h1>Student Management System</h1>
+        <p>Student Profile</p>
+    </div>
+
+    <nav class="header-actions">
+        <a href="{{ url_for('students') }}"
+           class="header-btn students-btn">
+            Students
+        </a>
+
+        <a href="{{ url_for('admin_home') }}"
+           class="header-btn dashboard-btn">
+            Dashboard
+        </a>
+
+        <a href="{{ url_for('admin_logout') }}"
+           class="header-btn logout-btn">
+            Logout
+        </a>
+    </nav>
+</header>
+
+<main class="profile-container">
+
+    <div class="breadcrumb">
+        <a href="{{ url_for('admin_home') }}">Dashboard</a>
+        /
+        <a href="{{ url_for('students') }}">Students</a>
+        / Student Profile
+    </div>
+
+    <!-- PROFILE HEADER -->
+
+    <section class="profile-banner">
+        <div class="profile-identity">
+
+            <div class="avatar">
+                {{ (student.first_name or 'S')[0]|upper }}
+            </div>
+
+            <div>
+                <h2>
+                    {{ student.first_name }}
+                    {{ student.last_name }}
+                </h2>
+
+                <p>{{ student.email or 'Email not provided' }}</p>
+
+                <span class="student-id-badge">
+                    Student ID: {{ student.student_id }}
+                </span>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- PERSONAL INFORMATION -->
+
+    <section class="info-card">
+        <h3 class="section-title">
+            👤 Personal Information
+        </h3>
+
+        <div class="details-grid">
+
+            <div class="detail-item">
+                <strong>First Name</strong>
+                <span>{{ student.first_name or '—' }}</span>
+            </div>
+
+            <div class="detail-item">
+                <strong>Last Name</strong>
+                <span>{{ student.last_name or '—' }}</span>
+            </div>
+
+            <div class="detail-item">
+                <strong>Gender</strong>
+                <span>{{ student.gender or '—' }}</span>
+            </div>
+
+            <div class="detail-item">
+                <strong>Date of Birth</strong>
+                <span>{{ student.date_of_birth or '—' }}</span>
+            </div>
+
+            <div class="detail-item">
+                <strong>Email Address</strong>
+                <span>{{ student.email or '—' }}</span>
+            </div>
+
+            <div class="detail-item">
+                <strong>Phone Number</strong>
+                <span>{{ student.phone or '—' }}</span>
+            </div>
+
+            <div class="detail-item full-width">
+                <strong>Address</strong>
+                <span>{{ student.address or 'Not provided' }}</span>
+            </div>
+
+            <div class="detail-item">
+                <strong>City</strong>
+                <span>{{ student.city or '—' }}</span>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ACADEMIC INFORMATION -->
+
+    <section class="info-card">
+        <h3 class="section-title">
+            🎓 Academic Information
+        </h3>
+
+        <div class="details-grid">
+
+            <div class="detail-item academic-highlight">
+                <strong>Student ID</strong>
+                <span>{{ student.student_id }}</span>
+            </div>
+
+            <div class="detail-item academic-highlight">
+                <strong>Department</strong>
+                <span>{{ student.department_name or '—' }}</span>
+            </div>
+
+            <div class="detail-item academic-highlight">
+                <strong>Course</strong>
+                <span>{{ student.course_name or '—' }}</span>
+            </div>
+
+            <div class="detail-item">
+                <strong>Semester</strong>
+                <span>{{ student.semester or '—' }}</span>
+            </div>
+
+            <div class="detail-item">
+                <strong>Admission Date</strong>
+                <span>{{ student.admission_date or '—' }}</span>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ACCOUNT INFORMATION -->
+
+    <section class="info-card">
+        <h3 class="section-title">
+            🔐 Account Information
+        </h3>
+
+        <div class="details-grid">
+
+            <div class="detail-item">
+                <strong>Username</strong>
+                <span>{{ student.username or '—' }}</span>
+            </div>
+
+            <div class="detail-item">
+                <strong>Account Type</strong>
+                <span>Student</span>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ACTIONS -->
+
+    <div class="profile-actions">
+
+        <a href="{{ url_for('students') }}"
+           class="action-btn back-btn">
+            ← Back to Students
+        </a>
+
+        <div class="action-group">
+            <a href="{{ url_for(
+                'edit_student',
+                student_id=student.student_id
+            ) }}"
+               class="action-btn edit-btn">
+                ✏️ Edit Student
+            </a>
+
+            <a href="{{ url_for('admin_home') }}"
+               class="action-btn dashboard-btn">
+                Go to Dashboard
+            </a>
+        </div>
+
+    </div>
+
+</main>
+
+<footer class="page-footer">
+    Student Management System &copy; 2026
+</footer>
+
+</body>
+</html>

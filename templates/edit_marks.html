@@ -1,0 +1,82 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Marks | Student Management System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .edit-container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 28px;
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 5px 24px rgba(0,0,0,.08);
+        }
+        .edit-container h2 { margin-bottom: 22px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: 600;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #d5d9e0;
+            border-radius: 7px;
+            box-sizing: border-box;
+        }
+        .btn {
+            display: inline-block;
+            padding: 11px 18px;
+            border: 0;
+            border-radius: 7px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-right: 8px;
+        }
+        .btn-save { background: #2563eb; color: white; }
+        .btn-cancel { background: #e5e7eb; color: #111827; }
+    </style>
+</head>
+<body>
+    <main class="edit-container">
+        <h2>Edit Examination Marks</h2>
+
+        <form method="POST">
+            <div class="form-group">
+                <label for="exam_name">Exam Name</label>
+                <input id="exam_name" name="exam_name"
+                       value="{{ mark.exam_name }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="marks_obtained">Marks Obtained</label>
+                <input id="marks_obtained" name="marks_obtained"
+                       type="number" min="0" step="0.01"
+                       value="{{ mark.marks_obtained }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="max_marks">Maximum Marks</label>
+                <input id="max_marks" name="max_marks"
+                       type="number" min="0.01" step="0.01"
+                       value="{{ mark.max_marks }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="exam_date">Exam Date</label>
+                <input id="exam_date" name="exam_date" type="date"
+                       value="{{ mark.exam_date or '' }}">
+            </div>
+
+            <button class="btn btn-save" type="submit">Save Changes</button>
+            <a class="btn btn-cancel"
+               href="{{ url_for('marks') }}">Cancel</a>
+        </form>
+    </main>
+</body>
+</html>

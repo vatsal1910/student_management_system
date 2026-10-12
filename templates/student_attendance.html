@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Attendance | Student Management System</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #eef2ff;
+            --background: #f5f7fb;
+            --text: #1e293b;
+            --muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            background: var(--background);
+            color: var(--text);
+        }
+
+        .header {
+            background: #111827;
+            color: white;
+            padding: 18px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .brand {
+            font-size: 21px;
+            font-weight: 700;
+        }
+
+        .header a, .back-btn, .nav-link {
+            text-decoration: none;
+            transition: 0.2s ease;
+        }
+
+        .header a {
+            color: white;
+            background: #374151;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .header a:hover {
+            background: #4b5563;
+        }
+
+        .container {
+            width: 92%;
+            max-width: 1250px;
+            margin: 30px auto 45px;
+        }
+
+        .back-btn {
+            display: inline-block;
+            color: var(--primary);
+            background: white;
+            padding: 10px 15px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .back-btn:hover {
+            background: var(--primary-light);
+        }
+
+        .page-title {
+            margin-bottom: 25px;
+        }
+
+        .page-title h2 {
+            font-size: 30px;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .page-title p {
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 28px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 23px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.035);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .summary-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--primary);
+        }
+
+        .summary-card.present-card::before {
+            background: #16a34a;
+        }
+
+        .summary-card.absent-card::before {
+            background: #dc2626;
+        }
+
+        .summary-card.percentage-card::before {
+            background: #0891b2;
+        }
+
+        .card-icon {
+            width: 42px;
+            height: 42px;
+            display: grid;
+            place-items: center;
+            border-radius: 11px;
+            background: var(--primary-light);
+            color: var(--primary);
+            font-size: 21px;
+            margin-bottom: 18px;
+        }
+
+        .present-card .card-icon {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .absent-card .card-icon {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .percentage-card .card-icon {
+            background: #cffafe;
+            color: #0e7490;
+        }
+
+        .summary-card h3 {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 9px;
+        }
+
+        .summary-card .number {
+            font-size: 30px;
+            font-weight: 750;
+            letter-spacing: -0.5px;
+        }
+
+        .summary-card .unit {
+            font-size: 17px;
+        }
+
+        .progress-section, .table-container {
+            background: white;
+            padding: 25px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.035);
+            margin-bottom: 25px;
+        }
+
+        .section-heading {
+            font-size: 19px;
+            margin-bottom: 8px;
+        }
+
+        .section-description {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            margin: 22px 0 10px;
+            font-size: 14px;
+        }
+
+        .progress-track {
+            height: 12px;
+            background: #e5e7eb;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: #16a34a;
+            border-radius: 20px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-bar.low {
+            background: #dc2626;
+        }
+
+        .progress-note {
+            color: var(--muted);
+            font-size: 13px;
+            margin-top: 12px;
+        }
+
+        .table-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .record-count {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 7px 11px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            min-width: 650px;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 15px 13px;
+            color: var(--muted);
+            background: #f8fafc;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 16px 13px;
+            border-bottom: 1px solid #edf0f5;
+            font-size: 14px;
+        }
+
+        tbody tr:hover {
+            background: #fafbff;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .subject-code {
+            display: inline-block;
+            background: #f1f5f9;
+            color: #334155;
+            padding: 5px 9px;
+            border-radius: 6px;
+            font-weight: 650;
+            font-size: 12px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 6px 11px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .present {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .absent {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 45px 15px;
+        }
+
+        .no-data .empty-icon {
+            font-size: 40px;
+            margin-bottom: 14px;
+        }
+
+        .no-data h3 {
+            margin-bottom: 9px;
+        }
+
+        .no-data p {
+            color: var(--muted);
+            line-height: 1.7;
+            font-size: 14px;
+        }
+
+        .flash {
+            padding: 13px 16px;
+            border-radius: 9px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .flash-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .flash-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .flash-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        @media (max-width: 1000px) {
+            .summary {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 600px) {
+            .header {
+                padding: 16px 5%;
+            }
+
+            .brand {
+                font-size: 16px;
+            }
+
+            .header a {
+                padding: 9px 11px;
+                font-size: 12px;
+            }
+
+            .container {
+                width: 92%;
+                margin-top: 22px;
+            }
+
+            .page-title h2 {
+                font-size: 25px;
+            }
+
+            .summary {
+                grid-template-columns: 1fr;
+                gap: 13px;
+            }
+
+            .summary-card {
+                padding: 19px;
+            }
+
+            .summary-card .number {
+                font-size: 27px;
+            }
+
+            .progress-section, .table-container {
+                padding: 18px 14px;
+            }
+
+            .progress-info {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="header">
+    <div class="brand">Student Management System</div>
+    <a href="{{ url_for('student_dashboard') }}">Dashboard</a>
+</header>
+
+<main class="container">
+
+    <a href="{{ url_for('student_dashboard') }}" class="back-btn">
+        &#8592; Back to Dashboard
+    </a>
+
+    <section class="page-title">
+        <h2>My Attendance</h2>
+        <p>Track your attendance, review your records, and monitor your progress.</p>
+    </section>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <section class="summary">
+
+        <div class="summary-card">
+            <div class="card-icon">&#128203;</div>
+            <h3>Total Classes</h3>
+            <p class="number">{{ total_classes }}</p>
+        </div>
+
+        <div class="summary-card present-card">
+            <div class="card-icon">&#10003;</div>
+            <h3>Present Classes</h3>
+            <p class="number">{{ present_count }}</p>
+        </div>
+
+        <div class="summary-card absent-card">
+            <div class="card-icon">&#10007;</div>
+            <h3>Absent Classes</h3>
+            <p class="number">{{ absent_count }}</p>
+        </div>
+
+        <div class="summary-card percentage-card">
+            <div class="card-icon">&#128200;</div>
+            <h3>Attendance Percentage</h3>
+            <p class="number">
+                {{ attendance_percentage }}<span class="unit">%</span>
+            </p>
+        </div>
+
+    </section>
+
+    <section class="progress-section">
+        <h3 class="section-heading">Attendance Progress</h3>
+        <p class="section-description">
+            Your overall attendance based on recorded classes.
+        </p>
+
+        <div class="progress-info">
+            <span>Overall attendance</span>
+            <strong>{{ attendance_percentage }}%</strong>
+        </div>
+
+        <div class="progress-track">
+            <div
+                class="progress-bar"
+                id="attendanceProgress"
+                data-percentage="{{ attendance_percentage }}">
+            </div>
+        </div>
+
+        <p class="progress-note" id="attendanceNote">
+            Attendance progress is calculated from your recorded classes.
+        </p>
+    </section>
+
+    <section class="table-container">
+
+        <div class="table-heading">
+            <div>
+                <h3 class="section-heading">Attendance History</h3>
+                <p class="section-description">
+                    Review the date and status of each recorded class.
+                </p>
+            </div>
+
+            <span class="record-count">
+                {{ total_classes }} Records
+            </span>
+        </div>
+
+        {% if attendance_records %}
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Subject Code</th>
+                            <th>Subject Name</th>
+                            <th>Attendance Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for record in attendance_records %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+
+                                <td>
+                                    <span class="subject-code">
+                                        {{ record.subject_code or 'N/A' }}
+                                    </span>
+                                </td>
+
+                                <td>{{ record.subject_name }}</td>
+
+                                <td>
+                                    {{ record.attendance_date.strftime('%d-%m-%Y')
+                                       if record.attendance_date else 'N/A' }}
+                                </td>
+
+                                <td>
+                                    {% if record.status == 'Present' %}
+                                        <span class="status present">Present</span>
+                                    {% else %}
+                                        <span class="status absent">Absent</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        {% else %}
+
+            <div class="no-data">
+                <div class="empty-icon">&#128203;</div>
+                <h3>No Attendance Records Yet</h3>
+                <p>
+                    Your attendance history will appear here when your
+                    administrator records your attendance.
+                </p>
+            </div>
+
+        {% endif %}
+
+    </section>
+
+</main>
+
+<footer class="footer">
+    Student Management System &copy; 2026
+</footer>
+
+<script>
+    const progressBar = document.getElementById("attendanceProgress");
+    const attendanceNote = document.getElementById("attendanceNote");
+
+    if (progressBar) {
+        let percentage = Number(progressBar.dataset.percentage) || 0;
+
+        // Keep the progress bar within the valid 0–100% range.
+        percentage = Math.max(0, Math.min(100, percentage));
+        progressBar.style.width = percentage + "%";
+
+        if (percentage < 75) {
+            progressBar.classList.add("low");
+            attendanceNote.textContent =
+                "Your attendance is below 75%. Check your institution's attendance requirement.";
+        } else {
+            attendanceNote.textContent =
+                "Your attendance is 75% or higher. Keep maintaining your attendance.";
+        }
+    }
+</script>
+
+</body>
+</html>

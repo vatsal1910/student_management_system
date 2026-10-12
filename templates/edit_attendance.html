@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Edit Attendance | Student Management System</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f6f9;
+            color: #333;
+        }
+
+        .header {
+            background: #1f2937;
+            color: white;
+            padding: 20px 30px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+        }
+
+        .header a {
+            text-decoration: none;
+            color: white;
+            background: #374151;
+            padding: 10px 18px;
+            border-radius: 6px;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 800px;
+            margin: 30px auto;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+
+            text-decoration: none;
+            color: white;
+
+            background: #2563eb;
+
+            padding: 10px 18px;
+
+            border-radius: 6px;
+        }
+
+        .page-title {
+            margin-bottom: 20px;
+        }
+
+        .page-title h2 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .page-title p {
+            color: #666;
+        }
+
+        .form-container {
+            background: white;
+            padding: 30px;
+
+            border-radius: 10px;
+
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .form-grid {
+            display: grid;
+
+            grid-template-columns: 1fr 1fr;
+
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 7px;
+
+            font-weight: bold;
+
+            color: #374151;
+        }
+
+        .form-group input,
+        .form-group select {
+
+            padding: 11px 12px;
+
+            border: 1px solid #d1d5db;
+
+            border-radius: 6px;
+
+            font-size: 15px;
+
+            outline: none;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #2563eb;
+        }
+
+        .button-container {
+            margin-top: 25px;
+
+            display: flex;
+
+            gap: 10px;
+        }
+
+        .update-btn {
+            background: #16a34a;
+
+            color: white;
+
+            border: none;
+
+            padding: 12px 22px;
+
+            border-radius: 6px;
+
+            cursor: pointer;
+
+            font-size: 15px;
+
+            font-weight: bold;
+        }
+
+        .update-btn:hover {
+            background: #15803d;
+        }
+
+        .cancel-btn {
+            background: #6b7280;
+
+            color: white;
+
+            text-decoration: none;
+
+            padding: 12px 22px;
+
+            border-radius: 6px;
+
+            font-size: 15px;
+        }
+
+        .cancel-btn:hover {
+            background: #4b5563;
+        }
+
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+
+        .flash {
+            padding: 12px 15px;
+
+            border-radius: 6px;
+
+            margin-bottom: 10px;
+        }
+
+        .flash-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .flash-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .flash-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        @media (max-width: 700px) {
+
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- HEADER -->
+
+<div class="header">
+
+    <h1>Student Management System</h1>
+
+    <a href="{{ url_for('admin_home') }}">
+        Dashboard
+    </a>
+
+</div>
+
+
+<div class="container">
+
+
+    <!-- BACK -->
+
+    <a href="{{ url_for('attendance') }}"
+       class="back-btn">
+
+        ← Back to Attendance
+
+    </a>
+
+
+    <!-- TITLE -->
+
+    <div class="page-title">
+
+        <h2>Edit Attendance</h2>
+
+        <p>
+            Update the attendance record
+        </p>
+
+    </div>
+
+
+    <!-- FLASH MESSAGES -->
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+
+        {% if messages %}
+
+            <div class="flash-messages">
+
+                {% for category, message in messages %}
+
+                    <div class="flash flash-{{ category }}">
+
+                        {{ message }}
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+
+    {% endwith %}
+
+
+    <!-- FORM -->
+
+    <div class="form-container">
+
+        <form
+            action="{{ url_for('edit_attendance', attendance_id=attendance.id) }}"
+            method="POST">
+
+
+            <div class="form-grid">
+
+
+                <!-- STUDENT -->
+
+                <div class="form-group">
+
+                    <label for="student_id">
+                        Student
+                    </label>
+
+                    <select
+                        name="student_id"
+                        id="student_id"
+                        required>
+
+                        <option value="">
+                            Select Student
+                        </option>
+
+                        {% for student in students %}
+
+                            <option
+                                value="{{ student.id }}"
+                                {% if student.id == attendance.student_id %}
+                                    selected
+                                {% endif %}>
+
+                                {{ student.student_id }}
+                                -
+                                {{ student.first_name }}
+                                {{ student.last_name }}
+
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <!-- SUBJECT -->
+
+                <div class="form-group">
+
+                    <label for="subject_id">
+                        Subject
+                    </label>
+
+                    <select
+                        name="subject_id"
+                        id="subject_id"
+                        required>
+
+                        <option value="">
+                            Select Subject
+                        </option>
+
+                        {% for subject in subjects %}
+
+                            <option
+                                value="{{ subject.id }}"
+                                {% if subject.id == attendance.subject_id %}
+                                    selected
+                                {% endif %}>
+
+                                {{ subject.subject_code }}
+                                -
+                                {{ subject.subject_name }}
+                                (Sem {{ subject.semester }})
+
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <!-- DATE -->
+
+                <div class="form-group">
+
+                    <label for="attendance_date">
+                        Attendance Date
+                    </label>
+
+                    <input
+                        type="date"
+                        name="attendance_date"
+                        id="attendance_date"
+
+                        value="{{ attendance.attendance_date }}"
+
+                        required>
+
+                </div>
+
+
+                <!-- STATUS -->
+
+                <div class="form-group">
+
+                    <label for="status">
+                        Status
+                    </label>
+
+                    <select
+                        name="status"
+                        id="status"
+                        required>
+
+                        <option value="">
+                            Select Status
+                        </option>
+
+                        <option
+                            value="Present"
+                            {% if attendance.status == 'Present' %}
+                                selected
+                            {% endif %}>
+
+                            Present
+
+                        </option>
+
+                        <option
+                            value="Absent"
+                            {% if attendance.status == 'Absent' %}
+                                selected
+                            {% endif %}>
+
+                            Absent
+
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+            </div>
+
+
+            <!-- BUTTONS -->
+
+            <div class="button-container">
+
+                <button
+                    type="submit"
+                    class="update-btn">
+
+                    ✓ Update Attendance
+
+                </button>
+
+
+                <a
+                    href="{{ url_for('attendance') }}"
+                    class="cancel-btn">
+
+                    Cancel
+
+                </a>
+
+            </div>
+
+
+        </form>
+
+    </div>
+
+
+</div>
+
+
+</body>
+
+</html>

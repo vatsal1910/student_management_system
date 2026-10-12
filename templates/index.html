@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A clear, connected place to manage student records and follow academic progress.">
+    <title>Student Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+</head>
+<body class="home-page">
+    <nav class="navbar navbar-expand-lg navbar-light home-nav">
+        <div class="container">
+            <a class="navbar-brand home-brand" href="{{ url_for('home') }}">
+                <span class="brand-mark"><i class="bi bi-mortarboard-fill"></i></span>
+                <span>Campus<span class="brand-light">Flow</span></span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#homeNavigation" aria-controls="homeNavigation" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="homeNavigation">
+                <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-4">
+                    <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+                    <li class="nav-item"><a class="btn nav-login" href="{{ url_for('admin_login') }}">Sign in <i class="bi bi-arrow-up-right ms-1"></i></a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section class="hero-section" id="home">
+            <div class="container">
+                <div class="row align-items-center gy-5">
+                    <div class="col-lg-6 hero-copy">
+                        <span class="eyebrow"><span class="eyebrow-dot"></span> A smarter campus, in sync</span>
+                        <h1>Smart Student<br><span>Management System</span></h1>
+                        <p class="hero-description">Bring student records and academic progress together in one simple, secure workspace built for your campus community.</p>
+                        <div class="hero-actions">
+                            <a class="btn btn-primary hero-primary" href="{{ url_for('student_login') }}">Explore student portal <i class="bi bi-arrow-right ms-2"></i></a>
+                            <a class="hero-text-link" href="#about">Discover the platform <i class="bi bi-arrow-down ms-1"></i></a>
+                        </div>
+                        <div class="hero-trust"><i class="bi bi-shield-check"></i> One connected place for your academic journey</div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="preview-wrap" aria-label="Illustration of an academic dashboard">
+                            <div class="preview-glow"></div>
+                            <div class="preview-card">
+                                <div class="preview-top">
+                                    <div><span class="preview-kicker">CAMPUS OVERVIEW</span><h2>Your academic hub</h2></div>
+                                    <span class="preview-avatar"><i class="bi bi-mortarboard-fill"></i></span>
+                                </div>
+                                <div class="preview-welcome"><span class="welcome-icon"><i class="bi bi-stars"></i></span><div><strong>Everything in one place</strong><small>Stay on top of the semester</small></div></div>
+                                <div class="preview-stats">
+                                    <div class="stat-tile"><span class="stat-icon violet"><i class="bi bi-people-fill"></i></span><small>Student records</small><strong>Organized</strong></div>
+                                    <div class="stat-tile"><span class="stat-icon mint"><i class="bi bi-calendar2-check-fill"></i></span><small>Attendance</small><strong>Up to date</strong></div>
+                                </div>
+                                <div class="preview-progress">
+                                    <div class="progress-heading"><span>Academic progress</span><i class="bi bi-three-dots"></i></div>
+                                    <div class="progress-line"><span></span></div>
+                                    <div class="progress-caption"><span>Learning, made visible</span><i class="bi bi-graph-up-arrow"></i></div>
+                                </div>
+                            </div>
+                            <div class="floating-note note-top"><span class="note-icon"><i class="bi bi-check2"></i></span><span><strong>Simple to navigate</strong><small>Designed for everyday use</small></span></div>
+                            <div class="floating-note note-bottom"><span class="note-icon note-icon-blue"><i class="bi bi-lock-fill"></i></span><span><strong>Secure access</strong><small>Separate portals for everyone</small></span></div>
+                            <span class="decor-dot decor-one"></span><span class="decor-dot decor-two"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="portal-section" id="about">
+            <div class="container">
+                <div class="section-heading text-center">
+                    <span class="section-label">GET STARTED</span>
+                    <h2>Your campus, one click away</h2>
+                    <p>Choose the portal that matches your role.</p>
+                </div>
+                <div class="row g-4 portal-cards">
+                    <div class="col-md-4">
+                        <article class="portal-card portal-admin">
+                            <div class="portal-icon"><i class="bi bi-shield-lock-fill"></i></div>
+                            <span class="portal-label">FOR ADMINISTRATORS</span>
+                            <h3>Admin Login</h3>
+                            <p>Manage student records, courses, departments, and academic activity.</p>
+                            <a href="{{ url_for('admin_login') }}" class="portal-link">Open admin portal <i class="bi bi-arrow-right"></i></a>
+                        </article>
+                    </div>
+                    <div class="col-md-4">
+                        <article class="portal-card portal-student">
+                            <div class="portal-icon"><i class="bi bi-person-workspace"></i></div>
+                            <span class="portal-label">FOR STUDENTS</span>
+                            <h3>Student Login</h3>
+                            <p>View your profile, attendance, marks, and results in one place.</p>
+                            <a href="{{ url_for('student_login') }}" class="portal-link">Open student portal <i class="bi bi-arrow-right"></i></a>
+                        </article>
+                    </div>
+                    <div class="col-md-4">
+                        <article class="portal-card portal-register">
+                            <div class="portal-icon"><i class="bi bi-person-plus-fill"></i></div>
+                            <span class="portal-label">NEW TO THE PORTAL?</span>
+                            <h3>Student Registration</h3>
+                            <p>Student accounts are created by an administrator. Find out how to get access.</p>
+                            <a href="{{ url_for('student_registration') }}" class="portal-link">Registration information <i class="bi bi-arrow-right"></i></a>
+                        </article>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="features-section" id="features">
+            <div class="container">
+                <div class="row align-items-end section-heading-row">
+                    <div class="col-lg-7">
+                        <span class="section-label">BUILT FOR YOUR CAMPUS</span>
+                        <h2>Less busywork.<br><span>More room to grow.</span></h2>
+                    </div>
+                    <div class="col-lg-5"><p>Essential academic tools work together, helping administrators stay organized and students stay informed.</p></div>
+                </div>
+                <div class="row g-3 feature-grid">
+                    <div class="col-sm-6 col-lg-3"><article class="feature-card"><span class="feature-icon feature-violet"><i class="bi bi-people"></i></span><h3>Student Management</h3><p>Keep essential student information easy to manage and find.</p></article></div>
+                    <div class="col-sm-6 col-lg-3"><article class="feature-card"><span class="feature-icon feature-blue"><i class="bi bi-journal-bookmark"></i></span><h3>Course Management</h3><p>Keep courses and departments connected and organized.</p></article></div>
+                    <div class="col-sm-6 col-lg-3"><article class="feature-card"><span class="feature-icon feature-green"><i class="bi bi-calendar2-check"></i></span><h3>Attendance Tracking</h3><p>Record attendance and follow progress through the term.</p></article></div>
+                    <div class="col-sm-6 col-lg-3"><article class="feature-card"><span class="feature-icon feature-orange"><i class="bi bi-award"></i></span><h3>Marks &amp; Results</h3><p>Review marks and results in a clear academic record.</p></article></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="home-footer" id="contact">
+        <div class="container footer-inner">
+            <a class="navbar-brand home-brand" href="{{ url_for('home') }}"><span class="brand-mark"><i class="bi bi-mortarboard-fill"></i></span><span>Campus<span class="brand-light">Flow</span></span></a>
+            <p>Need help getting access? Contact your school administrator.</p>
+            <span class="copyright">&copy; 2026 Student Management System. All rights reserved.</span>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Course Management</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+</head>
+
+<body>
+
+<header class="dashboard-header">
+
+    <div>
+
+        <h1>Student Management System</h1>
+
+        <p>Course Management</p>
+
+    </div>
+
+
+    <div class="header-right">
+
+        <a
+            href="{{ url_for('admin_home') }}"
+            class="logout-btn"
+        >
+            Dashboard
+        </a>
+
+        <a
+            href="{{ url_for('admin_logout') }}"
+            class="logout-btn"
+        >
+            Logout
+        </a>
+
+    </div>
+
+</header>
+
+
+<main class="dashboard-content">
+
+    <h2>Course Management</h2>
+
+
+    <!-- FLASH MESSAGES -->
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+
+        {% if messages %}
+
+            {% for category, message in messages %}
+
+                <div class="alert {{ category }}">
+                    {{ message }}
+                </div>
+
+            {% endfor %}
+
+        {% endif %}
+
+    {% endwith %}
+
+
+    <!-- ADD COURSE -->
+
+    <div class="search-container">
+
+        <h3>Add New Course</h3>
+
+        <form
+            method="POST"
+            action="{{ url_for('add_course') }}"
+            class="search-form"
+        >
+
+            <!-- COURSE NAME -->
+
+            <input
+                type="text"
+                name="course_name"
+                placeholder="Enter Course Name"
+                class="search-input"
+                required
+            >
+
+
+            <!-- COURSE CODE -->
+
+            <input
+                type="text"
+                name="course_code"
+                placeholder="Enter Course Code"
+                class="search-input"
+                maxlength="20"
+                required
+            >
+
+
+            <!-- COURSE DURATION -->
+
+            <input
+                type="number"
+                name="duration_years"
+                placeholder="Duration in Years"
+                class="search-input"
+                min="1"
+                required
+            >
+
+
+            <!-- DEPARTMENT -->
+
+            <select
+                name="department_id"
+                class="search-input"
+                required
+            >
+
+                <option value="">
+                    Select Department
+                </option>
+
+                {% for department in departments %}
+
+                <option value="{{ department.id }}">
+
+                    {{ department.department_name }}
+
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+
+            <button
+                type="submit"
+                class="search-btn"
+            >
+                + Add Course
+            </button>
+
+        </form>
+
+    </div>
+
+
+    <!-- COURSE LIST -->
+
+    <div class="details-container">
+
+        <h3>All Courses</h3>
+
+
+        {% if courses %}
+
+        <div style="overflow-x:auto;">
+
+            <table class="student-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>#</th>
+
+                        <th>Course Name</th>
+
+                        <th>Department</th>
+
+                        <th>Actions</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for course in courses %}
+
+                    <tr>
+
+                        <td>
+                            {{ loop.index }}
+                        </td>
+
+
+                        <td>
+
+                            <strong>
+                                {{ course.course_name }}
+                            </strong>
+
+                        </td>
+
+
+                        <td>
+
+                            {{ course.department_name or 'N/A' }}
+
+                        </td>
+
+
+                        <td>
+
+                            <!-- EDIT -->
+
+                            <a
+                                href="{{ url_for(
+                                    'edit_course',
+                                    course_id=course.id
+                                ) }}"
+                                class="dashboard-btn"
+                            >
+                                Edit
+                            </a>
+
+
+                            <!-- DELETE -->
+
+                            <form
+                                method="POST"
+                                action="{{ url_for(
+                                    'delete_course',
+                                    course_id=course.id
+                                ) }}"
+                                style="display:inline;"
+                                onsubmit="return confirm(
+                                    'Are you sure you want to delete this course?'
+                                );"
+                            >
+
+                                <button
+                                    type="submit"
+                                    class="cancel-btn"
+                                >
+                                    Delete
+                                </button>
+
+                            </form>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        {% else %}
+
+            <p>
+                No courses found.
+            </p>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- BACK TO DASHBOARD -->
+
+    <div style="margin-top:20px;">
+
+        <a
+            href="{{ url_for('admin_home') }}"
+            class="cancel-btn"
+        >
+            ← Back to Dashboard
+        </a>
+
+    </div>
+
+</main>
+
+</body>
+
+</html>

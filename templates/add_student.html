@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Add Student | Student Management System</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #f3f6fc;
+            color: #1e293b;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        /* Header */
+
+        .page-header {
+            background: #ffffff;
+            padding: 22px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 3px 15px rgba(15, 23, 42, 0.07);
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 27px;
+            color: #172554;
+        }
+
+        .brand p {
+            margin: 5px 0 0;
+            color: #64748b;
+            font-size: 15px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-btn {
+            display: inline-block;
+            padding: 11px 19px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.2s ease;
+        }
+
+        .dashboard-btn {
+            background: #2563eb;
+            color: #ffffff;
+        }
+
+        .dashboard-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .logout-btn {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .logout-btn:hover {
+            background: #fecaca;
+        }
+
+        /* Main layout */
+
+        .page-container {
+            width: 100%;
+            max-width: 1120px;
+            margin: 36px auto;
+            padding: 0 20px;
+        }
+
+        .page-intro {
+            margin-bottom: 25px;
+        }
+
+        .page-intro h2 {
+            margin: 0 0 8px;
+            font-size: 28px;
+            color: #172554;
+        }
+
+        .page-intro p {
+            margin: 0;
+            color: #64748b;
+            line-height: 1.6;
+        }
+
+        .form-card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
+            overflow: hidden;
+        }
+
+        .form-card-header {
+            padding: 23px 30px;
+            background: linear-gradient(135deg, #1d4ed8, #4338ca);
+            color: #ffffff;
+        }
+
+        .form-card-header h3 {
+            margin: 0 0 6px;
+            font-size: 21px;
+        }
+
+        .form-card-header p {
+            margin: 0;
+            color: #dbeafe;
+            font-size: 14px;
+        }
+
+        .student-form {
+            padding: 30px;
+        }
+
+        /* Form sections */
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 13px;
+            margin-bottom: 22px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .section-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: #eff6ff;
+            font-size: 19px;
+        }
+
+        .section-title h4 {
+            margin: 0;
+            color: #1e293b;
+            font-size: 17px;
+        }
+
+        .section-title p {
+            margin: 4px 0 0;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 21px 24px;
+        }
+
+        .form-group {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .required {
+            color: #dc2626;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            min-height: 45px;
+            padding: 11px 13px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #1e293b;
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s ease,
+                        box-shadow 0.2s ease;
+        }
+
+        .form-group textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.13);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #94a3b8;
+        }
+
+        .field-help {
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.5;
+        }
+
+        /* Messages */
+
+        .flash-message {
+            padding: 13px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .flash-message.success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .flash-message.danger,
+        .flash-message.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .flash-message.warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .flash-message.info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        /* Form footer */
+
+        .form-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding-top: 23px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .footer-note {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 45px;
+            padding: 12px 23px;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease,
+                        transform 0.2s ease;
+        }
+
+        .submit-btn {
+            background: #2563eb;
+            color: #ffffff;
+        }
+
+        .submit-btn:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        .cancel-btn {
+            background: #f1f5f9;
+            color: #334155;
+        }
+
+        .cancel-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .page-footer {
+            text-align: center;
+            padding: 22px 15px;
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        /* Responsive */
+
+        @media (max-width: 700px) {
+            .page-header {
+                padding: 18px 20px;
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .brand h1 {
+                font-size: 22px;
+            }
+
+            .header-actions {
+                width: 100%;
+            }
+
+            .header-btn {
+                text-align: center;
+                flex: 1;
+            }
+
+            .page-container {
+                margin: 25px auto;
+                padding: 0 13px;
+            }
+
+            .page-intro h2 {
+                font-size: 24px;
+            }
+
+            .form-card-header {
+                padding: 20px;
+            }
+
+            .student-form {
+                padding: 22px 18px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 18px;
+            }
+
+            .form-group.full-width {
+                grid-column: auto;
+            }
+
+            .form-footer {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .form-actions {
+                width: 100%;
+            }
+
+            .action-btn {
+                flex: 1;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .form-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="page-header">
+    <div class="brand">
+        <h1>Student Management System</h1>
+        <p>Student Registration</p>
+    </div>
+
+    <div class="header-actions">
+        <a href="{{ url_for('admin_home') }}"
+           class="header-btn dashboard-btn">
+            Dashboard
+        </a>
+
+        <a href="{{ url_for('admin_logout') }}"
+           class="header-btn logout-btn">
+            Logout
+        </a>
+    </div>
+</header>
+
+<main class="page-container">
+
+    <div class="page-intro">
+        <h2>Add New Student</h2>
+        <p>Enter the student's personal information, academic details,
+           and login credentials below.</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message {{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="form-card">
+
+        <div class="form-card-header">
+            <h3>📝 Student Registration Form</h3>
+            <p>Fields marked with * are required.</p>
+        </div>
+
+        <form class="student-form"
+              method="POST"
+              action="{{ url_for('add_student') }}">
+
+            <!-- PERSONAL INFORMATION -->
+
+            <section class="form-section">
+
+                <div class="section-title">
+                    <div class="section-icon">👤</div>
+                    <div>
+                        <h4>Personal Information</h4>
+                        <p>Enter the student's basic information.</p>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+                        <label for="student_id">
+                            Student ID <span class="required">*</span>
+                        </label>
+                        <input type="text"
+                               id="student_id"
+                               name="student_id"
+                               placeholder="Example: STU001"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="first_name">
+                            First Name <span class="required">*</span>
+                        </label>
+                        <input type="text"
+                               id="first_name"
+                               name="first_name"
+                               placeholder="Enter first name"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="last_name">
+                            Last Name <span class="required">*</span>
+                        </label>
+                        <input type="text"
+                               id="last_name"
+                               name="last_name"
+                               placeholder="Enter last name"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email"
+                               id="email"
+                               name="email"
+                               placeholder="student@example.com"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel"
+                               id="phone"
+                               name="phone"
+                               placeholder="Enter phone number"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="date_of_birth">Date of Birth</label>
+                        <input type="date"
+                               id="date_of_birth"
+                               name="date_of_birth">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <select id="gender" name="gender">
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="city">City</label>
+                        <input type="text"
+                               id="city"
+                               name="city"
+                               placeholder="Enter city">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="address">Address</label>
+                        <textarea id="address"
+                                  name="address"
+                                  placeholder="Enter complete address"></textarea>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- ACADEMIC INFORMATION -->
+
+            <section class="form-section">
+
+                <div class="section-title">
+                    <div class="section-icon">🎓</div>
+                    <div>
+                        <h4>Academic Information</h4>
+                        <p>Select the student's department, course and semester.</p>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+                        <label for="department_id">
+                            Department <span class="required">*</span>
+                        </label>
+                        <select id="department_id"
+                                name="department_id"
+                                required>
+                            <option value="">Select Department</option>
+
+                            {% for department in departments %}
+                                <option value="{{ department.id }}">
+                                    {{ department.department_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="course_id">
+                            Course <span class="required">*</span>
+                        </label>
+                        <select id="course_id"
+                                name="course_id"
+                                required>
+                            <option value="">Select Course</option>
+
+                            {% for course in courses %}
+                                <option value="{{ course.id }}"
+                                        data-department="{{ course.department_id }}">
+                                    {{ course.course_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="semester">
+                            Semester <span class="required">*</span>
+                        </label>
+                        <select id="semester" name="semester" required>
+                            <option value="">Select Semester</option>
+                            {% for number in range(1, 9) %}
+                                <option value="{{ number }}">
+                                    Semester {{ number }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="admission_date">Admission Date</label>
+                        <input type="date"
+                               id="admission_date"
+                               name="admission_date"
+                               required>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- LOGIN INFORMATION -->
+
+            <section class="form-section">
+
+                <div class="section-title">
+                    <div class="section-icon">🔐</div>
+                    <div>
+                        <h4>Login Credentials</h4>
+                        <p>Create the username and password the student will use to log in.</p>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+                        <label for="username">
+                            Username <span class="required">*</span>
+                        </label>
+                        <input type="text"
+                               id="username"
+                               name="username"
+                               placeholder="Create username"
+                               autocomplete="off"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">
+                            Password <span class="required">*</span>
+                        </label>
+                        <input type="password"
+                               id="password"
+                               name="password"
+                               placeholder="Create password"
+                               autocomplete="new-password"
+                               required>
+                        <span class="field-help">
+                            Use a strong password for the student's account.
+                        </span>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- ACTIONS -->
+
+            <div class="form-footer">
+                <span class="footer-note">
+                    * Please complete all required fields.
+                </span>
+
+                <div class="form-actions">
+                    <a href="{{ url_for('students') }}"
+                       class="action-btn cancel-btn">
+                        Cancel
+                    </a>
+
+                    <button type="submit"
+                            class="action-btn submit-btn">
+                        Add Student
+                    </button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+</main>
+
+<footer class="page-footer">
+    Student Management System &copy; 2026
+</footer>
+
+<script>
+    // Filter courses according to the selected department.
+    const departmentSelect = document.getElementById("department_id");
+    const courseSelect = document.getElementById("course_id");
+
+    const allCourseOptions = Array.from(courseSelect.options).filter(
+        option => option.value !== ""
+    );
+
+    function filterCourses() {
+        const departmentId = departmentSelect.value;
+        const previousCourse = courseSelect.value;
+
+        courseSelect.innerHTML = "";
+
+        const placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.textContent = departmentId
+            ? "Select Course"
+            : "Select Department First";
+
+        courseSelect.appendChild(placeholder);
+
+        allCourseOptions.forEach(function (option) {
+            if (option.dataset.department === departmentId) {
+                courseSelect.appendChild(option);
+            }
+        });
+
+        const previousStillAvailable = Array.from(courseSelect.options).some(
+            option => option.value === previousCourse
+        );
+
+        if (previousStillAvailable) {
+            courseSelect.value = previousCourse;
+        } else {
+            courseSelect.value = "";
+        }
+
+        courseSelect.disabled = !departmentId;
+    }
+
+    departmentSelect.addEventListener("change", filterCourses);
+
+    filterCourses();
+</script>
+
+</body>
+</html>

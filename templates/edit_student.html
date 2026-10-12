@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Edit Student | Student Management System</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #f4f7fb;
+            color: #1e293b;
+            font-family: Arial, sans-serif;
+        }
+
+        .edit-header {
+            background: linear-gradient(135deg, #172554, #2563eb);
+            color: white;
+            padding: 22px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+
+        .edit-header h1 {
+            margin: 0 0 7px;
+            font-size: 25px;
+        }
+
+        .edit-header p {
+            margin: 0;
+            color: #dbeafe;
+            font-size: 14px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .header-btn {
+            display: inline-block;
+            padding: 10px 16px;
+            border: 1px solid rgba(255,255,255,.4);
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .header-btn:hover {
+            background: rgba(255,255,255,.15);
+        }
+
+        .page-container {
+            max-width: 1100px;
+            margin: 35px auto;
+            padding: 0 20px;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 30px rgba(15, 23, 42, .07);
+        }
+
+        .form-heading {
+            margin-bottom: 28px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e5eaf2;
+        }
+
+        .form-heading h2 {
+            margin: 0 0 8px;
+            font-size: 24px;
+        }
+
+        .form-heading p {
+            margin: 0;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .section-title {
+            margin: 28px 0 18px;
+            color: #1d4ed8;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            min-height: 44px;
+            padding: 11px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: white;
+            color: #1e293b;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+        }
+
+        .form-group input:disabled {
+            background: #f1f5f9;
+            color: #64748b;
+            cursor: not-allowed;
+        }
+
+        .field-help {
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 32px;
+            padding-top: 22px;
+            border-top: 1px solid #e5eaf2;
+        }
+
+        .btn {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #334155;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e1;
+        }
+
+        @media (max-width: 650px) {
+            .edit-header {
+                padding: 20px;
+            }
+
+            .edit-header h1 {
+                font-size: 21px;
+            }
+
+            .page-container {
+                margin: 20px auto;
+                padding: 0 12px;
+            }
+
+            .form-card {
+                padding: 20px 16px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-actions .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="edit-header">
+    <div>
+        <h1>Student Management System</h1>
+        <p>Edit and update student information</p>
+    </div>
+
+    <div class="header-actions">
+        <a href="{{ url_for('students') }}" class="header-btn">
+            View Students
+        </a>
+
+        <a href="{{ url_for('admin_logout') }}" class="header-btn">
+            Logout
+        </a>
+    </div>
+</header>
+
+<main class="page-container">
+    <section class="form-card">
+
+        <div class="form-heading">
+            <h2>Edit Student Details</h2>
+            <p>Update the student's personal, academic and account information.</p>
+        </div>
+
+        <form method="POST" class="student-form">
+
+            <h3 class="section-title">Personal Information</h3>
+
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label for="student_id">Student ID</label>
+                    <input type="text"
+                           id="student_id"
+                           value="{{ student.student_id }}"
+                           disabled>
+                    <span class="field-help">
+                        Student ID cannot be changed here.
+                    </span>
+                </div>
+
+                <div class="form-group">
+                    <label for="first_name">First Name *</label>
+                    <input type="text"
+                           id="first_name"
+                           name="first_name"
+                           value="{{ student.first_name }}"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label for="last_name">Last Name *</label>
+                    <input type="text"
+                           id="last_name"
+                           name="last_name"
+                           value="{{ student.last_name }}"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email"
+                           id="email"
+                           name="email"
+                           value="{{ student.email }}"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone *</label>
+                    <input type="text"
+                           id="phone"
+                           name="phone"
+                           value="{{ student.phone or '' }}"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label for="date_of_birth">Date of Birth</label>
+                    <input type="date"
+                           id="date_of_birth"
+                           name="date_of_birth"
+                           value="{{ student.date_of_birth.strftime('%Y-%m-%d') if student.date_of_birth else '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="gender">Gender</label>
+                    <select id="gender" name="gender">
+                        <option value="">Select Gender</option>
+
+                        <option value="Male"
+                            {% if student.gender == 'Male' %}selected{% endif %}>
+                            Male
+                        </option>
+
+                        <option value="Female"
+                            {% if student.gender == 'Female' %}selected{% endif %}>
+                            Female
+                        </option>
+
+                        <option value="Other"
+                            {% if student.gender == 'Other' %}selected{% endif %}>
+                            Other
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="city">City</label>
+                    <input type="text"
+                           id="city"
+                           name="city"
+                           value="{{ student.city or '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="address">Address</label>
+                    <input type="text"
+                           id="address"
+                           name="address"
+                           value="{{ student.address or '' }}">
+                </div>
+
+            </div>
+
+            <h3 class="section-title">Academic Information</h3>
+
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label for="department_id">Department *</label>
+                    <select id="department_id"
+                            name="department_id"
+                            required>
+
+                        {% for department in departments %}
+                        <option value="{{ department.id }}"
+                            {% if department.id|string == student.department_id|string %}selected{% endif %}>
+                            {{ department.department_name }}
+                        </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="course_id">Course *</label>
+                    <select id="course_id"
+                            name="course_id"
+                            required>
+
+                        {% for course in courses %}
+                        <option value="{{ course.id }}"
+                            {% if course.id|string == student.course_id|string %}selected{% endif %}>
+                            {{ course.course_name }}
+                        </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="semester">Semester *</label>
+                    <select id="semester" name="semester" required>
+
+                        {% for i in range(1, 7) %}
+                        <option value="{{ i }}"
+                            {% if i|string == student.semester|string %}selected{% endif %}>
+                            Semester {{ i }}
+                        </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="admission_date">Admission Date *</label>
+                    <input type="date"
+                           id="admission_date"
+                           name="admission_date"
+                           value="{{ student.admission_date.strftime('%Y-%m-%d') if student.admission_date else '' }}"
+                           required>
+                </div>
+
+            </div>
+
+            <h3 class="section-title">Student Login Information</h3>
+
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label for="username">Username *</label>
+                    <input type="text"
+                           id="username"
+                           name="username"
+                           value="{{ student.username }}"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">New Password</label>
+                    <input type="password"
+                           id="password"
+                           name="password"
+                           placeholder="Enter only if changing password"
+                           autocomplete="new-password">
+                    <span class="field-help">
+                        Leave blank to keep the current password.
+                    </span>
+                </div>
+
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    Update Student
+                </button>
+
+                <a href="{{ url_for('students') }}"
+                   class="btn btn-secondary">
+                    Cancel
+                </a>
+            </div>
+
+        </form>
+    </section>
+</main>
+
+</body>
+</html>

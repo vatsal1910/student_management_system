@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Student Dashboard | Student Management System</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #f4f7fb;
+            color: #1e293b;
+            font-family: Arial, sans-serif;
+        }
+
+        .student-header {
+            background: linear-gradient(135deg, #172554, #2563eb);
+            color: white;
+            padding: 22px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+
+        .student-header h1 {
+            margin: 0 0 8px;
+            font-size: 25px;
+        }
+
+        .student-header p {
+            margin: 0;
+            color: #dbeafe;
+            font-size: 14px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .header-btn {
+            padding: 10px 15px;
+            color: white;
+            text-decoration: none;
+            border: 1px solid rgba(255,255,255,.45);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .header-btn:hover {
+            background: rgba(255,255,255,.14);
+        }
+
+        .main-container {
+            max-width: 1250px;
+            margin: 30px auto;
+            padding: 0 22px;
+        }
+
+        .welcome-section {
+            margin-bottom: 25px;
+        }
+
+        .welcome-section h2 {
+            margin: 0 0 8px;
+            font-size: 27px;
+        }
+
+        .welcome-section p {
+            margin: 0;
+            color: #64748b;
+            line-height: 1.6;
+        }
+
+        .flash-message {
+            padding: 13px 16px;
+            margin-bottom: 18px;
+            border-radius: 9px;
+            font-size: 14px;
+        }
+
+        .flash-message.success {
+            color: #166534;
+            background: #dcfce7;
+            border: 1px solid #bbf7d0;
+        }
+
+        .flash-message.danger {
+            color: #991b1b;
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+        }
+
+        .flash-message.warning {
+            color: #92400e;
+            background: #fef3c7;
+            border: 1px solid #fde68a;
+        }
+
+        .flash-message.info {
+            color: #1e40af;
+            background: #dbeafe;
+            border: 1px solid #bfdbfe;
+        }
+
+        .panel {
+            background: white;
+            border: 1px solid #e8edf5;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 6px 24px rgba(15, 23, 42, .045);
+        }
+
+        .panel-heading {
+            margin-bottom: 22px;
+        }
+
+        .panel-heading h2 {
+            margin: 0 0 8px;
+            font-size: 21px;
+        }
+
+        .panel-heading p {
+            margin: 0;
+            color: #64748b;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .profile-item {
+            padding: 17px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 11px;
+            min-width: 0;
+        }
+
+        .profile-label {
+            display: block;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            margin-bottom: 9px;
+        }
+
+        .profile-value {
+            display: block;
+            color: #1e293b;
+            font-size: 15px;
+            font-weight: 600;
+            overflow-wrap: anywhere;
+        }
+
+        .attendance-stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            padding: 20px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+        }
+
+        .stat-card p {
+            margin: 0 0 12px;
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .stat-card h3 {
+            margin: 0;
+            font-size: 27px;
+            color: #1e293b;
+        }
+
+        .stat-card.overall {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+        }
+
+        .attendance-badge {
+            display: inline-block;
+            padding: 7px 11px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .attendance-good {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .attendance-low {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 20px;
+            background: #16a34a;
+        }
+
+        .progress-fill.low {
+            background: #dc2626;
+        }
+
+        .table-heading {
+            margin: 8px 0 15px;
+            font-size: 17px;
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .attendance-table {
+            width: 100%;
+            min-width: 600px;
+            border-collapse: collapse;
+        }
+
+        .attendance-table th,
+        .attendance-table td {
+            padding: 15px 13px;
+            text-align: left;
+            border-bottom: 1px solid #e8edf5;
+            font-size: 14px;
+        }
+
+        .attendance-table th {
+            background: #f1f5f9;
+            color: #475569;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+        }
+
+        .attendance-table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .subject-name {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .subject-code {
+            display: block;
+            color: #64748b;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .empty-state {
+            padding: 28px 15px;
+            text-align: center !important;
+            color: #64748b;
+        }
+
+        .attendance-note {
+            margin-top: 17px;
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .service-card {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            background: white;
+            border: 1px solid #e8edf5;
+            border-radius: 14px;
+            padding: 22px;
+            box-shadow: 0 5px 18px rgba(15, 23, 42, .04);
+            transition: transform .2s, box-shadow .2s;
+        }
+
+        .service-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(15, 23, 42, .08);
+        }
+
+        .service-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 46px;
+            height: 46px;
+            background: #dbeafe;
+            border-radius: 12px;
+            font-size: 23px;
+            margin-bottom: 17px;
+        }
+
+        .service-card h3 {
+            margin: 0 0 10px;
+            font-size: 17px;
+        }
+
+        .service-card p {
+            color: #64748b;
+            font-size: 13px;
+            line-height: 1.7;
+            margin: 0 0 20px;
+            flex: 1;
+        }
+
+        .service-btn {
+            display: inline-block;
+            width: 100%;
+            padding: 11px 12px;
+            background: #2563eb;
+            color: white;
+            border-radius: 8px;
+            text-align: center;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .service-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .footer {
+            padding: 15px 10px 25px;
+            color: #94a3b8;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        @media (max-width: 1000px) {
+            .profile-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .attendance-stats {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .services-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 600px) {
+            .student-header {
+                padding: 20px;
+            }
+
+            .student-header h1 {
+                font-size: 21px;
+            }
+
+            .main-container {
+                margin: 22px auto;
+                padding: 0 13px;
+            }
+
+            .welcome-section h2 {
+                font-size: 23px;
+            }
+
+            .panel {
+                padding: 18px 14px;
+            }
+
+            .profile-grid,
+            .attendance-stats,
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-card h3 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="student-header">
+    <div>
+        <h1>Student Management System</h1>
+        <p>Your personal student portal</p>
+    </div>
+
+    <div class="header-actions">
+        <a href="{{ url_for('student_profile') }}" class="header-btn">
+            My Profile
+        </a>
+
+        <a href="{{ url_for('student_logout') }}" class="header-btn">
+            Logout
+        </a>
+    </div>
+</header>
+
+<main class="main-container">
+
+    <!-- FLASH MESSAGES -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message {{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- WELCOME -->
+    <section class="welcome-section">
+        <h2>
+            Welcome, {{ student.first_name }} {{ student.last_name }}!
+        </h2>
+        <p>
+            Here you can view your academic information, attendance,
+            and examination results.
+        </p>
+    </section>
+
+    <!-- STUDENT PROFILE -->
+    <section class="panel">
+        <div class="panel-heading">
+            <h2>My Academic Profile</h2>
+            <p>Your personal and academic information.</p>
+        </div>
+
+        <div class="profile-grid">
+
+            <div class="profile-item">
+                <span class="profile-label">Student ID</span>
+                <span class="profile-value">
+                    {{ student.student_id }}
+                </span>
+            </div>
+
+            <div class="profile-item">
+                <span class="profile-label">Full Name</span>
+                <span class="profile-value">
+                    {{ student.first_name }} {{ student.last_name }}
+                </span>
+            </div>
+
+            <div class="profile-item">
+                <span class="profile-label">Email</span>
+                <span class="profile-value">
+                    {{ student.email or 'Not available' }}
+                </span>
+            </div>
+
+            <div class="profile-item">
+                <span class="profile-label">Phone</span>
+                <span class="profile-value">
+                    {{ student.phone or 'Not available' }}
+                </span>
+            </div>
+
+            <div class="profile-item">
+                <span class="profile-label">Department</span>
+                <span class="profile-value">
+                    {{ student.department_name or 'Not assigned' }}
+                </span>
+            </div>
+
+            <div class="profile-item">
+                <span class="profile-label">Course</span>
+                <span class="profile-value">
+                    {{ student.course_name or 'Not assigned' }}
+                </span>
+            </div>
+
+            <div class="profile-item">
+                <span class="profile-label">Current Semester</span>
+                <span class="profile-value">
+                    {{ student.semester or 'Not assigned' }}
+                </span>
+            </div>
+
+            <div class="profile-item">
+                <span class="profile-label">Admission Date</span>
+                <span class="profile-value">
+                    {{ student.admission_date.strftime('%d-%m-%Y') if student.admission_date else 'Not available' }}
+                </span>
+            </div>
+
+            <div class="profile-item">
+                <span class="profile-label">City</span>
+                <span class="profile-value">
+                    {{ student.city or 'Not available' }}
+                </span>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ATTENDANCE OVERVIEW -->
+    <section class="panel">
+        <div class="panel-heading">
+            <h2>My Attendance Overview</h2>
+            <p>Monitor your attendance and subject-wise performance.</p>
+        </div>
+
+        <div class="attendance-stats">
+
+            <div class="stat-card">
+                <p>Total Classes</p>
+                <h3>{{ total_classes }}</h3>
+            </div>
+
+            <div class="stat-card">
+                <p>Present Classes</p>
+                <h3>{{ present_classes }}</h3>
+            </div>
+
+            <div class="stat-card">
+                <p>Absent Classes</p>
+                <h3>{{ absent_classes }}</h3>
+            </div>
+
+            <div class="stat-card overall">
+                <p>Overall Attendance</p>
+
+                <h3>
+                    <span class="attendance-badge
+                        {% if overall_attendance < 75 %}
+                            attendance-low
+                        {% else %}
+                            attendance-good
+                        {% endif %}">
+                        {{ overall_attendance }}%
+                    </span>
+                </h3>
+
+
+            <div class="progress-track">
+                <div
+                  class="progress-fill"
+                  style="width: 0%;"
+                  data-attendance="{{ overall_attendance }}">
+                </div>
+            </div>
+
+
+            </div>
+
+        </div>
+
+        <h3 class="table-heading">Subject-wise Attendance</h3>
+
+        <div class="table-wrapper">
+            <table class="attendance-table">
+
+                <thead>
+                    <tr>
+                        <th>Subject</th>
+                        <th>Total Classes</th>
+                        <th>Present</th>
+                        <th>Absent</th>
+                        <th>Attendance</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for item in attendance_summary %}
+                    <tr>
+                        <td>
+                            <span class="subject-name">
+                                {{ item.subject_name }}
+                            </span>
+
+                            {% if item.subject_code %}
+                                <span class="subject-code">
+                                    {{ item.subject_code }}
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td>{{ item.total_classes }}</td>
+                        <td>{{ item.present_classes }}</td>
+                        <td>{{ item.absent_classes }}</td>
+
+                        <td>
+                            {% if item.total_classes > 0 %}
+                                <span class="attendance-badge
+                                    {% if item.attendance_percentage < 75 %}
+                                        attendance-low
+                                    {% else %}
+                                        attendance-good
+                                    {% endif %}">
+                                    {{ item.attendance_percentage }}%
+                                </span>
+                            {% else %}
+                                <span class="attendance-badge attendance-low">
+                                    No records
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="empty-state">
+                            No subject or attendance records are available yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+
+        <p class="attendance-note">
+            Attendance below 75% is highlighted in red.
+            Attendance of 75% or higher is highlighted in green.
+            Subjects without recorded classes show "No records".
+        </p>
+
+        <a href="{{ url_for('student_attendance') }}" class="service-btn">
+            View Full Attendance Records
+        </a>
+    </section>
+
+    <!-- STUDENT SERVICES -->
+    <section>
+        <div class="panel-heading">
+            <h2>Student Services</h2>
+            <p>Quick access to your academic information.</p>
+        </div>
+
+        <div class="services-grid">
+
+            <div class="service-card">
+                <div class="service-icon">👤</div>
+                <h3>My Profile</h3>
+                <p>View your personal details and academic information.</p>
+                <a href="{{ url_for('student_profile') }}"
+                   class="service-btn">
+                    View Profile
+                </a>
+            </div>
+
+            <div class="service-card">
+                <div class="service-icon">📊</div>
+                <h3>My Attendance</h3>
+                <p>Check present classes, absent classes and attendance percentage.</p>
+                <a href="{{ url_for('student_attendance') }}"
+                   class="service-btn">
+                    View Attendance
+                </a>
+            </div>
+
+            <div class="service-card">
+                <div class="service-icon">📝</div>
+                <h3>Marks & Results</h3>
+                <p>View examination marks, grades and academic results.</p>
+                <a href="{{ url_for('student_results') }}"
+                   class="service-btn">
+                    View Results
+                </a>
+            </div>
+
+            <div class="service-card">
+                <div class="service-icon">🎓</div>
+                <h3>My Course</h3>
+                <p>Review your department, course and current semester.</p>
+                <a href="{{ url_for('student_profile') }}"
+                   class="service-btn">
+                    Course Details
+                </a>
+            </div>
+
+        </div>
+    </section>
+
+    <footer class="footer">
+        Student Management System &mdash; Student Portal
+    </footer>
+
+</main>
+
+</body>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const progressBars = document.querySelectorAll(".progress-fill");
+
+    progressBars.forEach(function (bar) {
+        const attendance = parseFloat(bar.dataset.attendance) || 0;
+        const percentage = Math.max(0, Math.min(attendance, 100));
+
+        bar.style.width = percentage + "%";
+
+        if (attendance < 75) {
+            bar.classList.add("low");
+        }
+    });
+});
+</script>
+
+</html>

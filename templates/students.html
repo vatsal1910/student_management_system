@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Manage Students | Student Management System</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #f4f7fc;
+            color: #1e293b;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        /* Header */
+
+        .students-header {
+            background: #fff;
+            padding: 20px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 3px 15px rgba(15, 23, 42, 0.06);
+        }
+
+        .brand h1 {
+            margin: 0;
+            color: #172554;
+            font-size: 26px;
+        }
+
+        .brand p {
+            margin: 5px 0 0;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .header-btn {
+            display: inline-block;
+            padding: 10px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: 0.2s ease;
+        }
+
+        .dashboard-link {
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .dashboard-link:hover {
+            background: #dbeafe;
+        }
+
+        .logout-link {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .logout-link:hover {
+            background: #fecaca;
+        }
+
+        /* Main content */
+
+        .main-container {
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 32px 28px;
+        }
+
+        .page-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .page-heading h2 {
+            margin: 0 0 7px;
+            color: #172554;
+            font-size: 28px;
+        }
+
+        .page-heading p {
+            margin: 0;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .add-student-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 18px;
+            border-radius: 9px;
+            background: #2563eb;
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.2s ease;
+        }
+
+        .add-student-btn:hover {
+            background: #1d4ed8;
+        }
+
+        /* Flash messages */
+
+        .flash-message {
+            margin-bottom: 18px;
+            padding: 13px 16px;
+            border-radius: 9px;
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+        }
+
+        .flash-message.success {
+            background: #f0fdf4;
+            color: #166534;
+            border-color: #bbf7d0;
+        }
+
+        .flash-message.danger,
+        .flash-message.error {
+            background: #fef2f2;
+            color: #991b1b;
+            border-color: #fecaca;
+        }
+
+        .flash-message.warning {
+            background: #fffbeb;
+            color: #92400e;
+            border-color: #fde68a;
+        }
+
+        /* Search */
+
+        .search-panel {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            padding: 20px;
+            margin-bottom: 22px;
+            background: #fff;
+            border: 1px solid #e5eaf2;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(15, 23, 42, 0.04);
+        }
+
+        .search-form {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 0;
+            height: 45px;
+            padding: 0 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            outline: none;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .search-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+        }
+
+        .search-btn,
+        .clear-btn {
+            height: 45px;
+            padding: 0 17px;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .search-btn {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .search-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .clear-btn {
+            background: #f1f5f9;
+            color: #334155;
+        }
+
+        .clear-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .search-hint {
+            margin: 0;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        /* Table */
+
+        .table-panel {
+            background: #fff;
+            border: 1px solid #e5eaf2;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+        }
+
+        .table-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 20px 22px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .table-heading h3 {
+            margin: 0;
+            font-size: 18px;
+            color: #1e293b;
+        }
+
+        .result-count {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            background: #eff6ff;
+            color: #1d4ed8;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .student-table {
+            width: 100%;
+            min-width: 1150px;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .student-table thead th {
+            padding: 15px 16px;
+            background: #f8fafc;
+            color: #475569;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            white-space: nowrap;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .student-table tbody td {
+            padding: 15px 16px;
+            font-size: 13px;
+            color: #334155;
+            border-bottom: 1px solid #edf0f5;
+            vertical-align: middle;
+        }
+
+        .student-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .student-table tbody tr:hover {
+            background: #f8fbff;
+        }
+
+        .student-code {
+            font-weight: 700;
+            color: #1d4ed8;
+            white-space: nowrap;
+        }
+
+        .student-name {
+            color: #0f172a;
+            font-weight: 600;
+            min-width: 130px;
+        }
+
+        .email-cell {
+            overflow-wrap: anywhere;
+            min-width: 160px;
+        }
+
+        .semester-badge {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 6px;
+            background: #f1f5f9;
+            color: #475569;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        /* Action buttons */
+
+        .action-buttons {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            white-space: nowrap;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 7px 10px;
+            border: none;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .view-btn {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .view-btn:hover {
+            background: #bfdbfe;
+        }
+
+        .edit-btn {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .edit-btn:hover {
+            background: #fde68a;
+        }
+
+        .delete-btn {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .delete-btn:hover {
+            background: #fecaca;
+        }
+
+        .delete-form {
+            display: inline;
+            margin: 0;
+        }
+
+        /* Empty state */
+
+        .empty-state {
+            padding: 55px 20px;
+            text-align: center;
+            background: #fff;
+        }
+
+        .empty-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 65px;
+            height: 65px;
+            margin-bottom: 16px;
+            border-radius: 50%;
+            background: #eff6ff;
+            font-size: 29px;
+        }
+
+        .empty-state h3 {
+            margin: 0 0 9px;
+            color: #1e293b;
+        }
+
+        .empty-state p {
+            margin: 0 0 20px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .page-footer {
+            text-align: center;
+            padding: 20px;
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        /* Responsive */
+
+        @media (max-width: 700px) {
+            .students-header {
+                align-items: flex-start;
+                flex-direction: column;
+                padding: 20px;
+            }
+
+            .brand h1 {
+                font-size: 22px;
+            }
+
+            .header-actions {
+                width: 100%;
+            }
+
+            .header-btn {
+                flex: 1;
+                text-align: center;
+            }
+
+            .main-container {
+                padding: 23px 13px;
+            }
+
+            .page-heading h2 {
+                font-size: 24px;
+            }
+
+            .page-heading {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .add-student-btn {
+                align-self: flex-start;
+            }
+
+            .search-panel {
+                padding: 14px;
+            }
+
+            .search-form {
+                flex-wrap: wrap;
+                min-width: 100%;
+            }
+
+            .search-input {
+                flex-basis: 100%;
+            }
+
+            .search-btn,
+            .clear-btn {
+                flex: 1;
+            }
+
+            .table-heading {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="students-header">
+    <div class="brand">
+        <h1>Student Management System</h1>
+        <p>Student Records Management</p>
+    </div>
+
+    <div class="header-actions">
+        <a href="{{ url_for('admin_home') }}"
+           class="header-btn dashboard-link">
+            Dashboard
+        </a>
+
+        <a href="{{ url_for('admin_logout') }}"
+           class="header-btn logout-link">
+            Logout
+        </a>
+    </div>
+</header>
+
+<main class="main-container">
+
+    <!-- PAGE TITLE -->
+
+    <section class="page-heading">
+        <div>
+            <h2>All Students</h2>
+            <p>View and manage registered student records.</p>
+        </div>
+
+        <a href="{{ url_for('add_student') }}"
+           class="add-student-btn">
+            <span>＋</span> Add New Student
+        </a>
+    </section>
+
+    <!-- FLASH MESSAGES -->
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message {{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- SEARCH -->
+
+    <section class="search-panel">
+        <form method="GET"
+              action="{{ url_for('students') }}"
+              class="search-form">
+
+            <input
+                type="search"
+                name="search"
+                placeholder="Search by Student ID, name, email or phone..."
+                value="{{ search or '' }}"
+                class="search-input"
+                aria-label="Search students">
+
+            <button type="submit" class="search-btn">
+                🔍 Search
+            </button>
+
+            {% if search %}
+                <a href="{{ url_for('students') }}"
+                   class="clear-btn">
+                    Clear
+                </a>
+            {% endif %}
+        </form>
+
+        <p class="search-hint">
+            Search your student records using the field above.
+        </p>
+    </section>
+
+    <!-- STUDENT TABLE -->
+
+    <section class="table-panel">
+
+        <div class="table-heading">
+            <h3>🎓 Student Directory</h3>
+
+            <span class="result-count">
+                {{ students|length }} record(s)
+            </span>
+        </div>
+
+        {% if students %}
+
+            <div class="table-responsive">
+                <table class="student-table">
+
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Student ID</th>
+                            <th>Student Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Department</th>
+                            <th>Course</th>
+                            <th>Semester</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+
+                            <td>
+                                <span class="student-code">
+                                    {{ student.student_id }}
+                                </span>
+                            </td>
+
+                            <td>
+                                <div class="student-name">
+                                    {{ student.first_name }}
+                                    {{ student.last_name }}
+                                </div>
+                            </td>
+
+                            <td class="email-cell">
+                                {{ student.email or '—' }}
+                            </td>
+
+                            <td>
+                                {{ student.phone or '—' }}
+                            </td>
+
+                            <td>
+                                {{ student.department_name or '—' }}
+                            </td>
+
+                            <td>
+                                {{ student.course_name or '—' }}
+                            </td>
+
+                            <td>
+                                <span class="semester-badge">
+                                    {{ student.semester or '—' }}
+                                </span>
+                            </td>
+
+                            <td>
+                                <div class="action-buttons">
+
+                                    <a href="{{ url_for(
+                                        'student_details',
+                                        student_id=student.id
+                                    ) }}"
+                                       class="action-btn view-btn">
+                                        View
+                                    </a>
+
+                                    <a href="{{ url_for(
+                                        'edit_student',
+                                        student_id=student.student_id
+                                    ) }}"
+                                       class="action-btn edit-btn">
+                                        Edit
+                                    </a>
+
+                                    <form
+                                        action="{{ url_for(
+                                            'delete_student',
+                                            student_id=student.id
+                                        ) }}"
+                                        method="POST"
+                                        class="delete-form"
+                                        onsubmit="return confirm(
+                                            'Are you sure you want to delete this student?'
+                                        );">
+
+                                        <button type="submit"
+                                                class="action-btn delete-btn">
+                                            Delete
+                                        </button>
+                                    </form>
+
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+
+                </table>
+            </div>
+
+        {% else %}
+
+            <div class="empty-state">
+                <div class="empty-icon">🎓</div>
+
+                {% if search %}
+                    <h3>No Matching Students</h3>
+                    <p>Try another search term or clear the search.</p>
+
+                    <a href="{{ url_for('students') }}"
+                       class="add-student-btn">
+                        Clear Search
+                    </a>
+                {% else %}
+                    <h3>No Students Registered Yet</h3>
+                    <p>Add your first student to start managing records.</p>
+
+                    <a href="{{ url_for('add_student') }}"
+                       class="add-student-btn">
+                        ＋ Add First Student
+                    </a>
+                {% endif %}
+            </div>
+
+        {% endif %}
+
+    </section>
+
+</main>
+
+<footer class="page-footer">
+    Student Management System &copy; 2026
+</footer>
+
+</body>
+</html>
