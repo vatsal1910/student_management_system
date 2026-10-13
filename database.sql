@@ -292,7 +292,6 @@ VALUES
 
 -- SAMPLE ENROLLMENTS
 
-
 INSERT INTO enrollments
 (student_id, course_id, enrollment_date, status)
 VALUES
@@ -300,7 +299,6 @@ VALUES
 (2, 2, '2026-06-16', 'Active');
 
 -- SAMPLE ATTENDANCE
-
 
 INSERT INTO attendance
 (student_id, subject_id, attendance_date, status)
@@ -327,16 +325,6 @@ VALUES
 
 -- DATABASE COMPLETED
 
-USE student_management_system;
-
-SHOW TABLES;
-SELECT * FROM admins;
-SELECT * FROM departments;
-SELECT * FROM courses;
-SELECT * FROM students;
-SELECT * FROM attendance;
-SELECT * FROM marks;
-
 SELECT
     s.student_id,
     CONCAT(s.first_name, ' ', s.last_name) AS student_name,
@@ -355,12 +343,9 @@ WHERE username = 'admin';
 SELECT username, email, password
 FROM admins;
 
-USE student_management_system;
-
 SELECT id, username, email, password
 FROM admins;
 
-USE student_management_system;
 
 UPDATE admins
 SET password = 'scrypt:32768:8:1$ax0IwpUVG7AahLaT$0f59b6a9e9314409226f434ac4cc633952acfab36d3afa015ae4907ff220b2cefff0f1396984c69d9c24652a790b0d0b0f587dd23c0cf59ebaaa66ca3068fb66'
@@ -369,16 +354,6 @@ WHERE username = 'admin';
 SELECT username, email, password
 FROM admins
 WHERE username = 'admin';
-
-DESCRIBE students;
-SELECT * FROM students;
-SHOW COLUMNS FROM students;
-USE student_management_system;
-
-SELECT * FROM departments;
-SELECT * FROM courses;
-SELECT * FROM departments;
-USE student_management_system;
 
 SELECT
     c.id,
@@ -389,8 +364,6 @@ FROM courses c
 LEFT JOIN departments d
 ON c.department_id = d.id;
 
-USE student_management_system;
-
 SELECT
     id,
     student_id,
@@ -398,4 +371,4 @@ SELECT
     last_name,
     username,
     password
-FROM students;
+FROM students;	

@@ -1,4 +1,3 @@
-# config.py
 # MySQL database configuration
 
 import os

@@ -4328,8 +4328,9 @@ def student_dashboard():
         if connection is not None and connection.is_connected():
             connection.close()
 
-
+# =========================================================
 # RUN APPLICATION
+# =========================================================
 
 if __name__ == "__main__":
 
