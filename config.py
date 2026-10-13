@@ -2,6 +2,10 @@
 
 import os
 import secrets
+from dotenv import load_dotenv
+
+
+load_dotenv()
 
 
 class Config:
@@ -14,7 +18,11 @@ class Config:
         "false"
     ).lower() in {"1", "true", "yes"}
 
-    # MySQL configuration
+    # Select the local MySQL backend or a PostgreSQL deployment backend explicitly.
+    DATABASE_BACKEND = os.environ.get("DATABASE_BACKEND", "mysql").lower()
+    DATABASE_URL = os.environ.get("DATABASE_URL")
+
+    # Local MySQL configuration
     MYSQL_HOST = os.environ.get(
         "MYSQL_HOST",
         "localhost"
@@ -27,7 +35,7 @@ class Config:
 
     MYSQL_PASSWORD = os.environ.get(
         "MYSQL_PASSWORD",
-        "Vatsal@1008"
+        ""
     )
 
     MYSQL_DATABASE = os.environ.get(
