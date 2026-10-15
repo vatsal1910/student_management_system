@@ -348,8 +348,8 @@ def admin_home():
             SELECT
                 COALESCE(
                     ROUND(
-                        100.0 * SUM(marks_obtained) /
-                        NULLIF(SUM(max_marks), 0),
+                        100.0 * SUM(marks) /
+                        NULLIF(SUM(total_marks), 0),
                         2
                     ),
                     0
@@ -380,18 +380,19 @@ def admin_home():
                 s.last_name,
                 sub.subject_name,
                 m.exam_name,
-                m.marks_obtained,
-                m.max_marks,
-                m.exam_date
+                m.marks AS marks_obtained,
+                m.total_marks AS max_marks,
+                m.created_at AS exam_date
             FROM marks AS m
             INNER JOIN students AS s
                 ON m.student_id = s.id
             INNER JOIN subjects AS sub
                 ON m.subject_id = sub.id
-            ORDER BY m.exam_date DESC, m.id DESC
+            ORDER BY m.created_at DESC, m.id DESC
             LIMIT 5
         """)
         recent_results = cursor.fetchall()
+
 
     except mysql.connector.Error as error:
         print(
@@ -3589,21 +3590,20 @@ def student_results():
         connection = get_db_connection()
         cursor = get_dictionary_cursor(connection)
 
-        # Fetch results only for the logged-in student
         cursor.execute("""
             SELECT
                 m.id,
                 m.exam_name,
-                m.marks_obtained,
-                m.max_marks,
-                m.exam_date,
+                m.marks AS marks_obtained,
+                m.total_marks AS max_marks,
+                m.created_at AS exam_date,
                 sub.subject_name,
                 sub.subject_code
-            FROM marks m
-            INNER JOIN subjects sub
+            FROM marks AS m
+            INNER JOIN subjects AS sub
                 ON m.subject_id = sub.id
             WHERE m.student_id = %s
-            ORDER BY m.exam_date DESC, m.id DESC
+            ORDER BY m.created_at DESC, m.id DESC
         """, (session["student_id"],))
 
         results = cursor.fetchall()
@@ -3611,7 +3611,6 @@ def student_results():
         total_obtained = 0
         total_maximum = 0
 
-        # Calculate percentage and grade for each result
         for result in results:
             obtained = float(result["marks_obtained"] or 0)
             maximum = float(result["max_marks"] or 0)
@@ -3642,7 +3641,6 @@ def student_results():
             total_obtained += obtained
             total_maximum += maximum
 
-        # Calculate overall percentage
         overall_percentage = (
             round((total_obtained / total_maximum) * 100, 2)
             if total_maximum > 0 else 0
@@ -3658,7 +3656,7 @@ def student_results():
         )
 
     except mysql.connector.Error as e:
-        print("DATABASE ERROR:", e, flush=True)
+        print("STUDENT RESULTS DATABASE ERROR:", e, flush=True)
         flash("Unable to load your results.", "danger")
         return redirect(url_for("student_dashboard"))
 
@@ -3669,19 +3667,16 @@ def student_results():
         if connection is not None and connection.is_connected():
             connection.close()
 
-
 # ADMIN RESULTS - VIEW ALL STUDENT RESULTS
 
 @app.route("/admin/results")
 def admin_results():
 
-    # Admin login protection
     if "admin_id" not in session:
         return redirect(url_for("admin_login"))
 
     connection = None
     cursor = None
-    results = []
 
     try:
         connection = get_db_connection()
@@ -3696,15 +3691,15 @@ def admin_results():
                 sub.subject_name,
                 sub.subject_code,
                 m.exam_name,
-                m.marks_obtained,
-                m.max_marks,
-                m.exam_date
+                m.marks AS marks_obtained,
+                m.total_marks AS max_marks,
+                m.created_at AS exam_date
             FROM marks AS m
             INNER JOIN students AS s
                 ON m.student_id = s.id
             INNER JOIN subjects AS sub
                 ON m.subject_id = sub.id
-            ORDER BY m.exam_date DESC, m.id DESC
+            ORDER BY m.created_at DESC, m.id DESC
         """)
 
         results = cursor.fetchall()
@@ -3754,7 +3749,6 @@ def admin_results():
             connection.close()
 
 
-
 # ADMIN MARKS MANAGEMENT
 
 @app.route("/admin/marks")
@@ -3777,18 +3771,18 @@ def marks():
                 m.student_id,
                 m.subject_id,
                 m.exam_name,
-                m.marks_obtained,
-                m.max_marks,
-                m.exam_date,
+                m.marks AS marks_obtained,
+                m.total_marks AS max_marks,
+                m.created_at AS exam_date,
                 s.student_id AS student_code,
                 s.first_name,
                 s.last_name,
                 sub.subject_name,
                 sub.subject_code
-            FROM marks m
-            INNER JOIN students s ON m.student_id = s.id
-            INNER JOIN subjects sub ON m.subject_id = sub.id
-            ORDER BY m.exam_date DESC, m.id DESC
+            FROM marks AS m
+            INNER JOIN students AS s ON m.student_id = s.id
+            INNER JOIN subjects AS sub ON m.subject_id = sub.id
+            ORDER BY m.created_at DESC, m.id DESC
         """)
         marks_records = cursor.fetchall()
 
@@ -3814,7 +3808,7 @@ def marks():
         )
 
     except mysql.connector.Error as e:
-        print("DATABASE ERROR:", e, flush=True)
+        print("MARKS DATABASE ERROR:", e, flush=True)
         flash(f"Database Error: {e}", "danger")
         return render_template(
             "marks.html",
@@ -3826,9 +3820,9 @@ def marks():
     finally:
         if cursor is not None:
             cursor.close()
+
         if connection is not None and connection.is_connected():
             connection.close()
-
 
 # ADD MARKS
 
@@ -3859,12 +3853,8 @@ def add_marks():
         flash("Please enter valid student, subject, and marks values.", "danger")
         return redirect(url_for("marks"))
 
-    if maximum <= 0:
-        flash("Maximum marks must be greater than zero.", "danger")
-        return redirect(url_for("marks"))
-
-    if obtained < 0 or obtained > maximum:
-        flash("Marks obtained must be between 0 and maximum marks.", "danger")
+    if maximum <= 0 or obtained < 0 or obtained > maximum:
+        flash("Enter marks between 0 and the maximum marks.", "danger")
         return redirect(url_for("marks"))
 
     connection = None
@@ -3874,12 +3864,18 @@ def add_marks():
         connection = get_db_connection()
         cursor = get_tuple_cursor(connection)
 
-        cursor.execute("SELECT id FROM students WHERE id = %s", (student_pk,))
+        cursor.execute(
+            "SELECT id FROM students WHERE id = %s",
+            (student_pk,)
+        )
         if cursor.fetchone() is None:
             flash("Selected student was not found.", "danger")
             return redirect(url_for("marks"))
 
-        cursor.execute("SELECT id FROM subjects WHERE id = %s", (subject_pk,))
+        cursor.execute(
+            "SELECT id FROM subjects WHERE id = %s",
+            (subject_pk,)
+        )
         if cursor.fetchone() is None:
             flash("Selected subject was not found.", "danger")
             return redirect(url_for("marks"))
@@ -3893,13 +3889,19 @@ def add_marks():
         """, (student_pk, subject_pk, exam_name))
 
         if cursor.fetchone():
-            flash("Marks for this student, subject, and exam already exist.", "warning")
+            flash(
+                "Marks for this student, subject, and exam already exist.",
+                "warning"
+            )
             return redirect(url_for("marks"))
 
+        
         cursor.execute("""
             INSERT INTO marks
-                (student_id, subject_id, exam_name, marks_obtained, max_marks, exam_date)
-            VALUES (%s, %s, %s, %s, %s, %s)
+                (student_id, subject_id, exam_name,
+                 marks, total_marks, created_at)
+            VALUES (%s, %s, %s, %s, %s,
+                    COALESCE(%s, CURRENT_TIMESTAMP))
         """, (
             student_pk,
             subject_pk,
@@ -3909,27 +3911,36 @@ def add_marks():
             exam_date
         ))
 
+
         connection.commit()
         flash("Marks added successfully.", "success")
 
     except mysql.connector.Error as e:
         if connection is not None:
             connection.rollback()
-        print("DATABASE ERROR:", e, flush=True)
+
+        print("ADD MARKS DATABASE ERROR:", e, flush=True)
         flash(f"Database Error: {e}", "danger")
 
     finally:
         if cursor is not None:
             cursor.close()
+
         if connection is not None and connection.is_connected():
             connection.close()
 
     return redirect(url_for("marks"))
 
 
+
+
+# EDIT MARKS
+
 @app.route("/admin/marks/edit/<int:mark_id>", methods=["GET", "POST"])
 def edit_marks(mark_id: int):
+
     if "admin_id" not in session:
+        flash("Please login as admin first.", "warning")
         return redirect(url_for("admin_login"))
 
     connection = None
@@ -3939,61 +3950,123 @@ def edit_marks(mark_id: int):
         connection = get_db_connection()
         cursor = get_dictionary_cursor(connection)
 
-        if request.method == "POST":
-            exam_name = request.form.get("exam_name", "").strip()
-            marks_obtained = request.form.get("marks_obtained", "").strip()
-            max_marks = request.form.get("max_marks", "").strip()
-            exam_date = request.form.get("exam_date") or None
-
-            try:
-                obtained = float(marks_obtained)
-                maximum = float(max_marks)
-
-                if not exam_name or maximum <= 0 or obtained < 0 or obtained > maximum:
-                    flash("Please enter valid marks.", "danger")
-                    return redirect(url_for("edit_marks", mark_id=mark_id))
-
-            except ValueError:
-                flash("Marks must be valid numbers.", "danger")
-                return redirect(url_for("edit_marks", mark_id=mark_id))
-
-            cursor.execute("""
-                UPDATE marks
-                SET exam_name = %s,
-                    marks_obtained = %s,
-                    max_marks = %s,
-                    exam_date = %s
-                WHERE id = %s
-            """, (exam_name, obtained, maximum, exam_date, mark_id))
-
-            connection.commit()
-            flash("Marks updated successfully.", "success")
-            return redirect(url_for("marks"))
-
+        # Get the existing marks record
         cursor.execute("""
-            SELECT m.*
-            FROM marks m
-            WHERE m.id = %s
+            SELECT
+                id,
+                student_id,
+                subject_id,
+                exam_name,
+                marks,
+                total_marks,
+                created_at
+            FROM marks
+            WHERE id = %s
         """, (mark_id,))
 
         mark = cursor.fetchone()
 
-        if not mark:
+        if mark is None:
             flash("Marks record not found.", "danger")
             return redirect(url_for("marks"))
 
-        return render_template("edit_marks.html", mark=mark)
+        # Update marks
+        if request.method == "POST":
+
+            exam_name = request.form.get(
+                "exam_name", ""
+            ).strip()
+
+            marks_obtained = request.form.get(
+                "marks_obtained", ""
+            ).strip()
+
+            max_marks = request.form.get(
+                "max_marks", ""
+            ).strip()
+
+            exam_date = request.form.get(
+                "exam_date", ""
+            ).strip() or None
+
+            if not exam_name:
+                flash("Exam name is required.", "danger")
+                return render_template(
+                    "edit_marks.html",
+                    mark=mark
+                )
+
+            try:
+                obtained = float(marks_obtained)
+                maximum = float(max_marks)
+            except (ValueError, TypeError):
+                flash("Marks must be valid numbers.", "danger")
+                return render_template(
+                    "edit_marks.html",
+                    mark=mark
+                )
+
+            if maximum <= 0 or obtained < 0 or obtained > maximum:
+                flash(
+                    "Obtained marks must be between 0 and maximum marks.",
+                    "danger"
+                )
+                return render_template(
+                    "edit_marks.html",
+                    mark=mark
+                )
+
+            # IMPORTANT:
+            # Use the actual database column names:
+            # marks, total_marks, and created_at.
+            cursor.execute("""
+                UPDATE marks
+                SET
+                    exam_name = %s,
+                    marks = %s,
+                    total_marks = %s,
+                    created_at = COALESCE(%s, created_at)
+                WHERE id = %s
+            """, (
+                exam_name,
+                obtained,
+                maximum,
+                exam_date,
+                mark_id
+            ))
+
+            connection.commit()
+
+            flash("Marks updated successfully.", "success")
+            return redirect(url_for("marks"))
+
+        return render_template(
+            "edit_marks.html",
+            mark=mark
+        )
 
     except mysql.connector.Error as e:
-        print("DATABASE ERROR:", e, flush=True)
-        flash("Unable to update marks.", "danger")
+
+        if connection is not None:
+            connection.rollback()
+
+        print("EDIT MARKS DATABASE ERROR:", e, flush=True)
+
+        flash(
+            "Unable to update marks. Please check the database structure.",
+            "danger"
+        )
+
         return redirect(url_for("marks"))
 
     finally:
         if cursor is not None:
             cursor.close()
+
         if connection is not None and connection.is_connected():
             connection.close()
+
+
 
 
 @app.route("/admin/marks/delete/<int:mark_id>", methods=["POST"])
