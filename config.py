@@ -22,22 +22,12 @@ class Config:
     DATABASE_BACKEND = os.environ.get("DATABASE_BACKEND", "mysql").lower()
     DATABASE_URL = os.environ.get("DATABASE_URL")
 
-    # Local MySQL configuration
-    MYSQL_HOST = os.environ.get(
-        "MYSQL_HOST",
-        "localhost"
-    )
-
-    MYSQL_USER = os.environ.get(
-        "MYSQL_USER",
-        "root"
-    )
-
-    MYSQL_PASSWORD = os.environ.get(
-        "MYSQL_PASSWORD",
-        ""
-    )
-
+    
+    # MySQL database configuration
+    MYSQL_HOST = os.environ.get("MYSQL_HOST", "localhost")
+    MYSQL_PORT = int(os.environ.get("MYSQL_PORT", "3306"))
+    MYSQL_USER = os.environ.get("MYSQL_USER", "root")
+    MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD", "")
     MYSQL_DATABASE = os.environ.get(
         "MYSQL_DATABASE",
         "student_management_system"

@@ -1,11 +1,12 @@
 -- 1. Create Database
 CREATE DATABASE IF NOT EXISTS student_management_system;
 
+
 -- 2. Select Database
 USE student_management_system;
 
--- 3. ADMINS TABLE
 
+-- 3. ADMINS TABLE
 CREATE TABLE IF NOT EXISTS admins (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
@@ -14,8 +15,8 @@ CREATE TABLE IF NOT EXISTS admins (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 4. DEPARTMENTS TABLE
 
+-- 4. DEPARTMENTS TABLE
 CREATE TABLE IF NOT EXISTS departments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     department_name VARCHAR(100) NOT NULL UNIQUE,
@@ -23,8 +24,8 @@ CREATE TABLE IF NOT EXISTS departments (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 5. COURSES TABLE
 
+-- 5. COURSES TABLE
 CREATE TABLE IF NOT EXISTS courses (
     id INT AUTO_INCREMENT PRIMARY KEY,
     course_name VARCHAR(100) NOT NULL,
@@ -40,8 +41,8 @@ CREATE TABLE IF NOT EXISTS courses (
         ON DELETE RESTRICT
 );
 
--- 6. SUBJECTS TABLE
 
+-- 6. SUBJECTS TABLE
 CREATE TABLE IF NOT EXISTS subjects (
     id INT AUTO_INCREMENT PRIMARY KEY,
     subject_name VARCHAR(100) NOT NULL,
@@ -57,8 +58,8 @@ CREATE TABLE IF NOT EXISTS subjects (
         ON DELETE CASCADE
 );
 
--- 7. STUDENTS TABLE
 
+-- 7. STUDENTS TABLE
 CREATE TABLE IF NOT EXISTS students (
     id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -101,8 +102,8 @@ CREATE TABLE IF NOT EXISTS students (
         ON DELETE RESTRICT
 );
 
--- 8. ENROLLMENTS TABLE
 
+-- 8. ENROLLMENTS TABLE
 CREATE TABLE IF NOT EXISTS enrollments (
     id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -131,8 +132,8 @@ CREATE TABLE IF NOT EXISTS enrollments (
     UNIQUE(student_id, course_id)
 );
 
--- 9. ATTENDANCE TABLE
 
+-- 9. ATTENDANCE TABLE
 CREATE TABLE IF NOT EXISTS attendance (
     id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -160,9 +161,8 @@ CREATE TABLE IF NOT EXISTS attendance (
     UNIQUE(student_id, subject_id, attendance_date)
 );
 
+
 -- 10. MARKS TABLE
-
-
 CREATE TABLE IF NOT EXISTS marks (
     id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -192,12 +192,14 @@ CREATE TABLE IF NOT EXISTS marks (
     UNIQUE(student_id, subject_id, exam_name)
 );
 
+
 -- SAMPLE ADMIN
 
 INSERT INTO admins
 (username, email, password)
 VALUES
 ('admin', 'admin@gmail.com', 'admin123');
+
 
 -- SAMPLE DEPARTMENTS
 
@@ -208,6 +210,7 @@ VALUES
 ('Information Technology', 'Information Technology and Software Development'),
 ('Commerce', 'Business and Commerce Studies');
 
+
 -- SAMPLE COURSES
 
 INSERT INTO courses
@@ -216,6 +219,7 @@ VALUES
 ('Bachelor of Computer Applications', 'BCA', 1, 3),
 ('Bachelor of Science IT', 'BSCIT', 2, 3),
 ('Bachelor of Commerce', 'BCOM', 3, 3);
+
 
 -- SAMPLE SUBJECTS
 
@@ -233,8 +237,8 @@ VALUES
 ('Financial Accounting', 'BCOM101', 3, 1),
 ('Business Economics', 'BCOM102', 3, 1);
 
--- SAMPLE STUDENTS
 
+-- SAMPLE STUDENTS
 
 INSERT INTO students
 (
@@ -290,16 +294,16 @@ VALUES
     'student123'
 );
 
--- SAMPLE ENROLLMENTS
 
+-- SAMPLE ENROLLMENTS
 INSERT INTO enrollments
 (student_id, course_id, enrollment_date, status)
 VALUES
 (1, 1, '2026-06-15', 'Active'),
 (2, 2, '2026-06-16', 'Active');
 
--- SAMPLE ATTENDANCE
 
+-- SAMPLE ATTENDANCE
 INSERT INTO attendance
 (student_id, subject_id, attendance_date, status)
 VALUES
@@ -313,8 +317,8 @@ VALUES
 (2, 5, '2026-07-01', 'Present'),
 (2, 5, '2026-07-02', 'Absent');
 
--- SAMPLE MARKS
 
+-- SAMPLE MARKS
 INSERT INTO marks
 (student_id, subject_id, exam_name, marks, total_marks)
 VALUES
@@ -323,8 +327,8 @@ VALUES
 
 (2, 5, 'Internal Exam', 88, 100);
 
--- DATABASE COMPLETED
 
+-- DATABASE COMPLETED
 SELECT
     s.student_id,
     CONCAT(s.first_name, ' ', s.last_name) AS student_name,
@@ -371,4 +375,4 @@ SELECT
     last_name,
     username,
     password
-FROM students;	
+FROM students;

@@ -58,17 +58,18 @@ class TupleCursor(Protocol):
 
 # MYSQL CONNECTION
 
-def get_db_connection() -> DatabaseConnection:
 
+def get_db_connection() -> DatabaseConnection:
     connection = mysql.connector.connect(
         host=app.config["MYSQL_HOST"],
+        port=app.config["MYSQL_PORT"],
         user=app.config["MYSQL_USER"],
         password=app.config["MYSQL_PASSWORD"],
         database=app.config["MYSQL_DATABASE"],
         use_pure=True,
-        connection_timeout=5
+        connection_timeout=10,
+        ssl_disabled=False
     )
-
     return connection
 
 
