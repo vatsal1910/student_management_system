@@ -286,6 +286,7 @@
 
     <h2>Dashboard Overview</h2>
 
+    {% if dashboard_data_available %}
     <section class="stats-grid">
 
         <div class="stat-card">
@@ -324,6 +325,7 @@
         </div>
 
     </section>
+    {% endif %}
 
     <!-- MANAGEMENT MODULES -->
 
@@ -407,6 +409,7 @@
 
     <!-- RECENT STUDENTS -->
 
+    {% if dashboard_data_available %}
     <section class="recent-section">
 
         <h2>🆕 Recent Students</h2>
@@ -512,9 +515,9 @@
         </a>
 
     </section>
+    {% endif %}
 
 </main>
 
 </body>
 </html>
-

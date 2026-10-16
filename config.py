@@ -2,10 +2,11 @@
 
 import os
 import secrets
+from pathlib import Path
 from dotenv import load_dotenv
 
 
-load_dotenv()
+load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
 
 RUNNING_ON_RENDER = os.environ.get("RENDER", "").lower() == "true"
 SECRET_KEY = os.environ.get("SECRET_KEY")

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Database Unavailable | Student Management System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+</head>
+<body class="login-page">
+    <main class="login-card">
+        <a class="back-link" href="{{ url_for('home') }}">Back to Home</a>
+        <h1>Database unavailable</h1>
+        <p role="alert">{{ message }}</p>
+    </main>
+</body>
+</html>

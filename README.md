@@ -20,6 +20,41 @@ For local development, copy `.env.example` to `.env` and fill in values from
 your MySQL provider. Keep `.env` out of Git. On Render, configure the variables
 under the web service's Environment settings. A Render Blueprint is described
 in `render.yaml`; database credentials remain manual/sensitive variables.
+The root `.env` is loaded explicitly by `config.py` before these settings are
+read. Operating-system environment variables take precedence over `.env`.
+
+Replace every example placeholder with the real value from your provider; the
+example values are not usable connection details. A database password may be
+empty only if your provider explicitly configures the account that way.
+
+To generate a local Flask secret, run:
+
+```powershell
+python -c "import secrets; print(secrets.token_hex(32))"
+```
+
+Keep the generated value private and set it as `SECRET_KEY` in `.env`. Render
+can generate the key from the Blueprint; do not reuse the local `.env` file
+there.
+
+If the login POST reports missing `MYSQL_*` settings, the login form itself
+still renders without a database connection; authentication needs the
+provider's actual MySQL host, port, username, password, and database name.
+Use the provider dashboard's MySQL connection details (not a local
+`localhost` address or a PostgreSQL URL). If your provider does not offer
+MySQL, this MySQL application cannot connect to it as configured.
+
+To run locally after filling in `.env`:
+
+```powershell
+.\venv\Scripts\python.exe -m pip install -r requirements.txt
+.\venv\Scripts\python.exe -m flask --app app run
+```
+
+Open `http://127.0.0.1:5000/student/login` or
+`http://127.0.0.1:5000/admin/login`. A successful GET verifies only that the
+login page renders; submit the form only after configuring a reachable database
+and a valid account.
 
 ## Render commands
 

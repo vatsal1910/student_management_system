@@ -29,6 +29,14 @@ app.config.from_object(Config)
 DatabaseConnection = MySQLConnectionAbstract | PooledMySQLConnection
 
 
+class DatabaseConfigurationError(RuntimeError):
+    pass
+
+
+class DatabaseUnavailableError(DatabaseConfigurationError):
+    pass
+
+
 class DictionaryCursor(Protocol):
     def execute(
         self,
@@ -78,34 +86,67 @@ def get_db_connection() -> DatabaseConnection:
             missing_settings.append(name)
 
     if missing_settings:
-        raise RuntimeError(
+        raise DatabaseConfigurationError(
             "Missing required database environment variables: "
             + ", ".join(missing_settings)
         )
 
     port_value = database_config["MYSQL_PORT"]
     if not isinstance(port_value, str):
-        raise RuntimeError("MYSQL_PORT must be a valid TCP port number.")
+        raise DatabaseConfigurationError(
+            "MYSQL_PORT must be a valid TCP port number."
+        )
 
     try:
         mysql_port = int(port_value)
     except (TypeError, ValueError) as error:
-        raise RuntimeError("MYSQL_PORT must be a valid TCP port number.") from error
+        raise DatabaseConfigurationError(
+            "MYSQL_PORT must be a valid TCP port number."
+        ) from error
 
     if not 1 <= mysql_port <= 65535:
-        raise RuntimeError("MYSQL_PORT must be between 1 and 65535.")
+        raise DatabaseConfigurationError(
+            "MYSQL_PORT must be between 1 and 65535."
+        )
 
-    connection = mysql.connector.connect(
-        host=cast(str, database_config["MYSQL_HOST"]).strip(),
-        port=mysql_port,
-        user=cast(str, database_config["MYSQL_USER"]).strip(),
-        password=cast(str, database_config["MYSQL_PASSWORD"]),
-        database=cast(str, database_config["MYSQL_DATABASE"]).strip(),
-        use_pure=True,
-        connection_timeout=10,
-        ssl_disabled=False
+    try:
+        return mysql.connector.connect(
+            host=cast(str, database_config["MYSQL_HOST"]).strip(),
+            port=mysql_port,
+            user=cast(str, database_config["MYSQL_USER"]).strip(),
+            password=cast(str, database_config["MYSQL_PASSWORD"]),
+            database=cast(str, database_config["MYSQL_DATABASE"]).strip(),
+            use_pure=True,
+            connection_timeout=10,
+            ssl_disabled=False
+        )
+    except mysql.connector.Error as error:
+        app.logger.error(
+            "MySQL connection failed (errno=%s, sqlstate=%s)",
+            error.errno,
+            error.sqlstate
+        )
+        raise DatabaseUnavailableError(
+            "The database connection failed. Verify the provider settings "
+            "and database availability."
+        ) from None
+
+
+@app.errorhandler(DatabaseConfigurationError)
+def handle_database_configuration_error(
+    error: DatabaseConfigurationError
+):
+    app.logger.error("Database configuration error: %s", error)
+    return (
+        render_template(
+            "database_unavailable.html",
+            message=(
+                "The database is not configured. Set the required MySQL "
+                "environment variables and try again."
+            )
+        ),
+        503,
     )
-    return connection
 
 
 def get_dictionary_cursor(
@@ -194,13 +235,14 @@ def db_test():
         </p>
         """
 
-    except mysql.connector.Error as error:
+    except mysql.connector.Error:
 
         return f"""
         <h1>MySQL Connection Failed ❌</h1>
 
-        <p>{error}</p>
-        """, 500
+        <p>The database request failed. Verify the database provider settings
+        and availability.</p>
+        """, 503
 
     finally:
 
@@ -308,12 +350,21 @@ def admin_login():
                     "danger"
                 )
 
-        except mysql.connector.Error as error:
+        except DatabaseConfigurationError as error:
+            flash(str(error), "danger")
+            return render_template("admin_login.html"), 503
 
+        except mysql.connector.Error as error:
+            app.logger.error(
+                "Admin login database request failed (errno=%s, sqlstate=%s)",
+                error.errno,
+                error.sqlstate
+            )
             flash(
-                f"Database error: {error}",
+                "Unable to access the database. Verify its configuration and availability.",
                 "danger"
             )
+            return render_template("admin_login.html"), 503
 
         finally:
 
@@ -344,20 +395,22 @@ def admin_home():
     connection = None
     cursor = None
 
-    # Default values for dashboard
-    total_students = 0
-    total_courses = 0
-    total_departments = 0
-    average_attendance = 0
-    average_marks = 0
-    recent_students = []
-    recent_results = []
+    dashboard_data_available = True
+    total_students = None
+    total_courses = None
+    total_departments = None
+    average_attendance = None
+    average_marks = None
+    recent_students = None
+    recent_results = None
+    query_context = "database connection"
 
     try:
         connection = get_db_connection()
         cursor = get_dictionary_cursor(connection)
 
         # 1. Total Students
+        query_context = "total students"
         cursor.execute("""
             SELECT COUNT(*) AS total
             FROM students
@@ -365,6 +418,7 @@ def admin_home():
         total_students = int(fetch_required_dict(cursor)["total"])
 
         # 2. Total Courses
+        query_context = "total courses"
         cursor.execute("""
             SELECT COUNT(*) AS total
             FROM courses
@@ -372,6 +426,7 @@ def admin_home():
         total_courses = int(fetch_required_dict(cursor)["total"])
 
         # 3. Total Departments
+        query_context = "total departments"
         cursor.execute("""
             SELECT COUNT(*) AS total
             FROM departments
@@ -379,6 +434,7 @@ def admin_home():
         total_departments = int(fetch_required_dict(cursor)["total"])
 
         # 4. Average Attendance Percentage
+        query_context = "average attendance"
         cursor.execute("""
             SELECT
                 COALESCE(
@@ -400,12 +456,13 @@ def admin_home():
         )
 
         # 5. Average Marks Percentage
+        query_context = "average marks"
         cursor.execute("""
             SELECT
                 COALESCE(
                     ROUND(
-                        100.0 * SUM(marks) /
-                        NULLIF(SUM(total_marks), 0),
+                        100.0 * SUM(marks_obtained) /
+                        NULLIF(SUM(max_marks), 0),
                         2
                     ),
                     0
@@ -417,6 +474,7 @@ def admin_home():
         )
 
         # 6. Recent Students (latest 5 records)
+        query_context = "recent students"
         cursor.execute("""
             SELECT
                 student_id,
@@ -430,15 +488,16 @@ def admin_home():
         recent_students = cursor.fetchall()
 
         # 7. Recent Examination Results (latest 5 records)
+        query_context = "recent results"
         cursor.execute("""
             SELECT
                 s.first_name,
                 s.last_name,
                 sub.subject_name,
                 m.exam_name,
-                m.marks AS marks_obtained,
-                m.total_marks AS max_marks,
-                m.created_at AS exam_date
+                m.marks_obtained,
+                m.max_marks,
+                m.exam_date
             FROM marks AS m
             INNER JOIN students AS s
                 ON m.student_id = s.id
@@ -451,15 +510,17 @@ def admin_home():
 
 
     except mysql.connector.Error as error:
-        print(
-            "DASHBOARD DATABASE ERROR:",
-            error,
-            flush=True
+        dashboard_data_available = False
+        app.logger.exception(
+            "Admin dashboard query '%s' failed (errno=%s, sqlstate=%s)",
+            query_context,
+            error.errno,
+            error.sqlstate
         )
 
         flash(
-            "Some dashboard data could not be loaded. "
-            "Please check the database and table structure.",
+            "Dashboard data could not be loaded. "
+            "The failed query has been logged for the administrator.",
             "danger"
         )
 
@@ -480,8 +541,9 @@ def admin_home():
         average_attendance=average_attendance,
         average_marks=average_marks,
         recent_students=recent_students,
-        recent_results=recent_results   
-    )
+        recent_results=recent_results,
+        dashboard_data_available=dashboard_data_available
+    ), 200 if dashboard_data_available else 503
 
 
 # ADD STUDENT
@@ -979,19 +1041,16 @@ def students():
             search=search
         )
 
-    except mysql.connector.Error as e:
-
-        print(
-            "DATABASE ERROR:",
-            e,
-            flush=True
+    except mysql.connector.Error as error:
+        app.logger.error(
+            "Student list database request failed (errno=%s, sqlstate=%s)",
+            error.errno,
+            error.sqlstate
         )
-
         flash(
-            f"Database Error: {e}",
+            "Unable to load students. Verify database availability and try again.",
             "danger"
         )
-
         return render_template(
             "students.html",
             students=[],
@@ -1618,19 +1677,16 @@ def departments():
             departments=departments_data
         )
 
-    except mysql.connector.Error as e:
-
-        print(
-            "DATABASE ERROR:",
-            e,
-            flush=True
+    except mysql.connector.Error as error:
+        app.logger.error(
+            "Department list database request failed (errno=%s, sqlstate=%s)",
+            error.errno,
+            error.sqlstate
         )
-
         flash(
-            f"Database Error: {e}",
+            "Unable to load departments. Verify database availability and try again.",
             "danger"
         )
-
         return render_template(
             "departments.html",
             departments=[]
@@ -4241,18 +4297,21 @@ def student_login():
 
             flash("Invalid username or password.", "danger")
 
-        except mysql.connector.Error as e:
+        except DatabaseConfigurationError as error:
+            flash(str(error), "danger")
+            return render_template("student_login.html"), 503
 
-            print(
-                "DATABASE ERROR:",
-                e,
-                flush=True
+        except mysql.connector.Error as error:
+            app.logger.error(
+                "Student login database request failed (errno=%s, sqlstate=%s)",
+                error.errno,
+                error.sqlstate
             )
-
             flash(
-                f"Database Error: {e}",
+                "Unable to access the database. Verify its configuration and availability.",
                 "danger"
             )
+            return render_template("student_login.html"), 503
 
         finally:
 
