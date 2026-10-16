@@ -461,8 +461,8 @@ def admin_home():
             SELECT
                 COALESCE(
                     ROUND(
-                        100.0 * SUM(marks_obtained) /
-                        NULLIF(SUM(max_marks), 0),
+                        100.0 * SUM(marks) /
+                        NULLIF(SUM(total_marks), 0)
                         2
                     ),
                     0
@@ -490,22 +490,22 @@ def admin_home():
         # 7. Recent Examination Results (latest 5 records)
         query_context = "recent results"
         cursor.execute("""
-            SELECT
-                s.first_name,
-                s.last_name,
-                sub.subject_name,
-                m.exam_name,
-                m.marks_obtained,
-                m.max_marks,
-                m.exam_date
-            FROM marks AS m
-            INNER JOIN students AS s
-                ON m.student_id = s.id
-            INNER JOIN subjects AS sub
-                ON m.subject_id = sub.id
-            ORDER BY m.created_at DESC, m.id DESC
-            LIMIT 5
-        """)
+    SELECT
+        s.first_name,
+        s.last_name,
+        sub.subject_name,
+        m.exam_name,
+        m.marks,
+        m.total_marks,
+        m.created_at
+    FROM marks AS m
+    INNER JOIN students AS s
+        ON m.student_id = s.id
+    INNER JOIN subjects AS sub
+        ON m.subject_id = sub.id
+    ORDER BY m.created_at DESC, m.id DESC
+    LIMIT 5
+      """)
         recent_results = cursor.fetchall()
 
 
