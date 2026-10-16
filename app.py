@@ -455,6 +455,8 @@ def admin_home():
             fetch_required_dict(cursor)["average_attendance"]
         )
 
+        
+        
         # 5. Average Marks Percentage
         query_context = "average marks"
         cursor.execute("""
@@ -462,7 +464,7 @@ def admin_home():
                 COALESCE(
                     ROUND(
                         100.0 * SUM(marks) /
-                        NULLIF(SUM(total_marks), 0)
+                        NULLIF(SUM(total_marks), 0),
                         2
                     ),
                     0
@@ -472,6 +474,8 @@ def admin_home():
         average_marks = float(
             fetch_required_dict(cursor)["average_marks"]
         )
+
+
 
         # 6. Recent Students (latest 5 records)
         query_context = "recent students"
@@ -487,26 +491,28 @@ def admin_home():
         """)
         recent_students = cursor.fetchall()
 
+        
         # 7. Recent Examination Results (latest 5 records)
         query_context = "recent results"
         cursor.execute("""
-    SELECT
-        s.first_name,
-        s.last_name,
-        sub.subject_name,
-        m.exam_name,
-        m.marks,
-        m.total_marks,
-        m.created_at
-    FROM marks AS m
-    INNER JOIN students AS s
-        ON m.student_id = s.id
-    INNER JOIN subjects AS sub
-        ON m.subject_id = sub.id
-    ORDER BY m.created_at DESC, m.id DESC
-    LIMIT 5
-      """)
+            SELECT
+                s.first_name,
+                s.last_name,
+                sub.subject_name,
+                m.exam_name,
+                m.marks,
+                m.total_marks,
+                m.created_at
+            FROM marks AS m
+            INNER JOIN students AS s
+                ON m.student_id = s.id
+            INNER JOIN subjects AS sub
+                ON m.subject_id = sub.id
+            ORDER BY m.created_at DESC, m.id DESC
+            LIMIT 5
+        """)
         recent_results = cursor.fetchall()
+
 
 
     except mysql.connector.Error as error:
