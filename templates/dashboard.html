@@ -489,7 +489,7 @@
                         </td>
 
                         <td>
-                            {% set obtained = result.marks_obtained|float %}
+                            {% set obtained = result.marks|float %}
                             {% set maximum = result.max_marks|float %}
                             {% set percentage = (obtained / maximum * 100)
                                 if maximum > 0 else 0 %}
