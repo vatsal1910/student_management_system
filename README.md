@@ -75,7 +75,7 @@ up the database before considering any data-changing SQL.
 To inspect an existing MySQL schema without changing data, run these on the
 database and share the output with credentials and row data omitted:
 
-```sql
+
 SHOW CREATE TABLE admins;
 SHOW CREATE TABLE departments;
 SHOW CREATE TABLE courses;
@@ -83,4 +83,3 @@ SHOW CREATE TABLE subjects;
 SHOW CREATE TABLE students;
 SHOW CREATE TABLE attendance;
 SHOW CREATE TABLE marks;
-```
