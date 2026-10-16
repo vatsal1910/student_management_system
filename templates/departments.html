@@ -81,18 +81,19 @@
 
             <input
                 type="text"
-                name="department_code"
-                placeholder="Department Code (e.g. CS)"
+                name="department_name"
+                placeholder="Enter Department Name"
                 class="search-input"
+                maxlength="100"
                 required
             >
 
             <input
                 type="text"
-                name="department_name"
-                placeholder="Enter Department Name"
+                name="description"
+                placeholder="Description (optional)"
                 class="search-input"
-                required
+                maxlength="255"
             >
 
             <button
@@ -125,9 +126,9 @@
 
                         <th>#</th>
 
-                        <th>Department Code</th>
-
                         <th>Department Name</th>
+
+                        <th>Description</th>
 
                         <th>Actions</th>
 
@@ -146,13 +147,11 @@
                         </td>
 
                         <td>
-                            <strong>
-                                {{ department.department_code }}
-                            </strong>
+                            {{ department.department_name }}
                         </td>
 
                         <td>
-                            {{ department.department_name }}
+                            {{ department.description or '—' }}
                         </td>
 
                         <td>

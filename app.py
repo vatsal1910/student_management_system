@@ -10,6 +10,9 @@ from flask import (
 
 import mysql.connector
 from collections.abc import Mapping, Sequence
+from datetime import date
+import hmac
+import math
 from mysql.connector.abstracts import MySQLConnectionAbstract
 from mysql.connector.pooling import PooledMySQLConnection
 from typing import Any, Protocol, cast
@@ -60,12 +63,44 @@ class TupleCursor(Protocol):
 
 
 def get_db_connection() -> DatabaseConnection:
+    database_config = cast(dict[str, object], app.config)
+    required_settings = (
+        "MYSQL_HOST",
+        "MYSQL_PORT",
+        "MYSQL_USER",
+        "MYSQL_PASSWORD",
+        "MYSQL_DATABASE",
+    )
+    missing_settings: list[str] = []
+    for name in required_settings:
+        value = database_config.get(name)
+        if not isinstance(value, str) or not value.strip():
+            missing_settings.append(name)
+
+    if missing_settings:
+        raise RuntimeError(
+            "Missing required database environment variables: "
+            + ", ".join(missing_settings)
+        )
+
+    port_value = database_config["MYSQL_PORT"]
+    if not isinstance(port_value, str):
+        raise RuntimeError("MYSQL_PORT must be a valid TCP port number.")
+
+    try:
+        mysql_port = int(port_value)
+    except (TypeError, ValueError) as error:
+        raise RuntimeError("MYSQL_PORT must be a valid TCP port number.") from error
+
+    if not 1 <= mysql_port <= 65535:
+        raise RuntimeError("MYSQL_PORT must be between 1 and 65535.")
+
     connection = mysql.connector.connect(
-        host=app.config["MYSQL_HOST"],
-        port=app.config["MYSQL_PORT"],
-        user=app.config["MYSQL_USER"],
-        password=app.config["MYSQL_PASSWORD"],
-        database=app.config["MYSQL_DATABASE"],
+        host=cast(str, database_config["MYSQL_HOST"]).strip(),
+        port=mysql_port,
+        user=cast(str, database_config["MYSQL_USER"]).strip(),
+        password=cast(str, database_config["MYSQL_PASSWORD"]),
+        database=cast(str, database_config["MYSQL_DATABASE"]).strip(),
         use_pure=True,
         connection_timeout=10,
         ssl_disabled=False
@@ -98,6 +133,22 @@ def fetch_required_tuple(cursor: TupleCursor) -> tuple[Any, ...]:
     if row is None:
         raise RuntimeError("The database query returned no row.")
     return row
+
+
+def verify_stored_password(
+    stored_password: Any,
+    candidate_password: str
+) -> tuple[bool, bool]:
+    if not isinstance(stored_password, str):
+        return False, False
+
+    if stored_password.startswith(("scrypt:", "pbkdf2:")):
+        try:
+            return check_password_hash(stored_password, candidate_password), False
+        except (TypeError, ValueError):
+            return False, False
+
+    return hmac.compare_digest(stored_password, candidate_password), True
 
 
 # HOME
@@ -220,13 +271,18 @@ def admin_login():
 
             admin = cursor.fetchone()
 
-            admin_password = admin.get("password") if admin else None
+            password_matches, legacy_password = verify_stored_password(
+                admin.get("password") if admin else None,
+                password
+            )
 
-            if (
-                admin is not None
-                and isinstance(admin_password, str)
-                and check_password_hash(admin_password, password)
-            ):
+            if admin is not None and password_matches:
+                if legacy_password:
+                    cursor.execute(
+                        "UPDATE admins SET password = %s WHERE id = %s",
+                        (generate_password_hash(password), admin["id"])
+                    )
+                    connection.commit()
 
                 session.clear()
 
@@ -804,19 +860,13 @@ def add_student():
         )
 
 
-    except Exception as e:
+    except (TypeError, ValueError):
 
         if connection is not None:
             connection.rollback()
 
-        print(
-            "GENERAL ERROR:",
-            e,
-            flush=True
-        )
-
         flash(
-            f"Error: {e}",
+            "Please enter valid department, course, and semester values.",
             "danger"
         )
 
@@ -1048,8 +1098,8 @@ def edit_student(student_id: str):
         cursor.execute("""
             SELECT
                 id,
-                department_code,
-                department_name
+                department_name,
+                description
             FROM departments
             ORDER BY department_name
         """)
@@ -1556,7 +1606,6 @@ def departments():
         cursor.execute("""
             SELECT
                 id,
-                department_code,
                 department_name
             FROM departments
             ORDER BY department_name
@@ -1615,40 +1664,24 @@ def add_department():
             url_for("admin_login")
         )
 
-    department_code = request.form.get(
-        "department_code",
-        ""
-    ).strip().upper()
-
     department_name = request.form.get(
         "department_name",
         ""
     ).strip()
+    description = request.form.get("description", "").strip() or None
 
-
-    if not department_code:
-
+    if not department_name or len(department_name) > 100:
         flash(
-            "Department code is required.",
+            "Department name is required and must be 100 characters or fewer.",
             "danger"
         )
-
         return redirect(
             url_for("departments")
         )
 
-
-    if not department_name:
-
-        flash(
-            "Department name is required.",
-            "danger"
-        )
-
-        return redirect(
-            url_for("departments")
-        )
-
+    if description is not None and len(description) > 255:
+        flash("Department description must be 255 characters or fewer.", "danger")
+        return redirect(url_for("departments"))
 
     connection = None
     cursor = None
@@ -1662,8 +1695,8 @@ def add_department():
         cursor.execute("""
             INSERT INTO departments
             (
-                department_code,
-                department_name
+                department_name,
+                description
             )
             VALUES
             (
@@ -1671,8 +1704,8 @@ def add_department():
                 %s
             )
         """, (
-            department_code,
-            department_name
+            department_name,
+            description
         ))
 
         connection.commit()
@@ -1743,8 +1776,8 @@ def edit_department(department_id: int):
         cursor.execute("""
             SELECT
                 id,
-                department_code,
-                department_name
+                department_name,
+                description
             FROM departments
             WHERE id = %s
         """, (department_id,))
@@ -1766,52 +1799,38 @@ def edit_department(department_id: int):
 
         if request.method == "POST":
 
-            department_code = request.form.get(
-                "department_code",
-                ""
-            ).strip().upper()
-
             department_name = request.form.get(
                 "department_name",
                 ""
             ).strip()
+            description = request.form.get("description", "").strip() or None
 
-
-            if not department_code:
-
+            if not department_name or len(department_name) > 100:
                 flash(
-                    "Department code is required.",
+                    "Department name is required and must be 100 characters or fewer.",
                     "danger"
                 )
-
                 return render_template(
                     "edit_department.html",
                     department=department
                 )
 
-
-            if not department_name:
-
-                flash(
-                    "Department name is required.",
-                    "danger"
-                )
-
+            if description is not None and len(description) > 255:
+                flash("Department description must be 255 characters or fewer.", "danger")
                 return render_template(
                     "edit_department.html",
                     department=department
                 )
-
 
             cursor.execute("""
                 UPDATE departments
                 SET
-                    department_code = %s,
-                    department_name = %s
+                    department_name = %s,
+                    description = %s
                 WHERE id = %s
             """, (
-                department_code,
                 department_name,
+                description,
                 department_id
             ))
 
@@ -2000,7 +2019,6 @@ def courses():
         cursor.execute("""
             SELECT
                 id,
-                department_code,
                 department_name
             FROM departments
             ORDER BY department_name
@@ -2262,7 +2280,6 @@ def edit_course(course_id: int):
         cursor.execute("""
             SELECT
                 id,
-                department_code,
                 department_name
             FROM departments
             ORDER BY department_name
@@ -2538,7 +2555,6 @@ def subjects():
                 s.subject_code,
                 s.course_id,
                 s.semester,
-                s.max_marks,
                 c.course_name
             FROM subjects s
             LEFT JOIN courses c
@@ -2625,11 +2641,6 @@ def add_subject():
         ""
     ).strip()
 
-    max_marks = request.form.get(
-        "max_marks",
-        ""
-    ).strip()
-
     # Validation
 
     if not subject_name:
@@ -2646,25 +2657,23 @@ def add_subject():
         )
         return redirect(url_for("subjects"))
 
-    if not course_id:
-        flash(
-            "Please select a course.",
-            "danger"
-        )
+    if not course_id or not semester:
+        flash("Please select a course and semester.", "danger")
         return redirect(url_for("subjects"))
 
-    if not semester:
-        flash(
-            "Semester is required.",
-            "danger"
-        )
+    try:
+        course_pk = int(course_id)
+        semester_number = int(semester)
+    except ValueError:
+        flash("Please select a valid course and semester.", "danger")
         return redirect(url_for("subjects"))
 
-    if not max_marks:
-        flash(
-            "Maximum marks are required.",
-            "danger"
-        )
+    if course_pk < 1 or semester_number < 1:
+        flash("Please select a valid course and semester.", "danger")
+        return redirect(url_for("subjects"))
+
+    if len(subject_name) > 100 or len(subject_code) > 50:
+        flash("Subject name or code exceeds the allowed length.", "danger")
         return redirect(url_for("subjects"))
 
     connection = None
@@ -2681,12 +2690,10 @@ def add_subject():
                 subject_name,
                 subject_code,
                 course_id,
-                semester,
-                max_marks
+                semester
             )
             VALUES
             (
-                %s,
                 %s,
                 %s,
                 %s,
@@ -2695,9 +2702,8 @@ def add_subject():
         """, (
             subject_name,
             subject_code,
-            int(course_id),
-            int(semester),
-            int(max_marks)
+            course_pk,
+            semester_number
         ))
 
         connection.commit()
@@ -3138,6 +3144,14 @@ def add_attendance():
         flash("Please select a valid attendance status.", "danger")
         return redirect(url_for("attendance"))
 
+    try:
+        student_pk = int(student_id)
+        subject_pk = int(subject_id)
+        date.fromisoformat(attendance_date)
+    except ValueError:
+        flash("Enter a valid student, subject, and attendance date.", "danger")
+        return redirect(url_for("attendance"))
+
     connection = None
     cursor = None
 
@@ -3154,8 +3168,8 @@ def add_attendance():
               AND subject_id = %s
               AND attendance_date = %s
         """, (
-            int(student_id),
-            int(subject_id),
+            student_pk,
+            subject_pk,
             attendance_date
         ))
 
@@ -3186,8 +3200,8 @@ def add_attendance():
                 %s
             )
         """, (
-            int(student_id),
-            int(subject_id),
+            student_pk,
+            subject_pk,
             attendance_date,
             status
         ))
@@ -3315,6 +3329,10 @@ def edit_attendance(attendance_id: int):
                     )
                 )
 
+            student_pk = int(student_id)
+            subject_pk = int(subject_id)
+            date.fromisoformat(attendance_date)
+
             # Check duplicate record
             cursor.execute("""
                 SELECT id
@@ -3324,8 +3342,8 @@ def edit_attendance(attendance_id: int):
                   AND attendance_date = %s
                   AND id != %s
             """, (
-                int(student_id),
-                int(subject_id),
+                student_pk,
+                subject_pk,
                 attendance_date,
                 attendance_id
             ))
@@ -3355,8 +3373,8 @@ def edit_attendance(attendance_id: int):
                     status = %s
                 WHERE id = %s
             """, (
-                int(student_id),
-                int(subject_id),
+                student_pk,
+                subject_pk,
                 attendance_date,
                 status,
                 attendance_id
@@ -3794,7 +3812,7 @@ def marks():
         students_data = cursor.fetchall()
 
         cursor.execute("""
-            SELECT id, subject_name, subject_code, max_marks
+            SELECT id, subject_name, subject_code
             FROM subjects
             ORDER BY subject_name
         """)
@@ -3844,6 +3862,10 @@ def add_marks():
         flash("Please fill in all required marks fields.", "danger")
         return redirect(url_for("marks"))
 
+    if len(exam_name) > 100:
+        flash("Exam name cannot exceed 100 characters.", "danger")
+        return redirect(url_for("marks"))
+
     try:
         obtained = float(marks_obtained)
         maximum = float(max_marks)
@@ -3853,9 +3875,23 @@ def add_marks():
         flash("Please enter valid student, subject, and marks values.", "danger")
         return redirect(url_for("marks"))
 
-    if maximum <= 0 or obtained < 0 or obtained > maximum:
+    if (
+        not math.isfinite(obtained)
+        or not math.isfinite(maximum)
+        or maximum <= 0
+        or maximum > 999.99
+        or obtained < 0
+        or obtained > maximum
+    ):
         flash("Enter marks between 0 and the maximum marks.", "danger")
         return redirect(url_for("marks"))
+
+    if exam_date:
+        try:
+            date.fromisoformat(exam_date)
+        except ValueError:
+            flash("Enter a valid exam date.", "danger")
+            return redirect(url_for("marks"))
 
     connection = None
     cursor = None
@@ -3996,6 +4032,13 @@ def edit_marks(mark_id: int):
                     mark=mark
                 )
 
+            if len(exam_name) > 100:
+                flash("Exam name cannot exceed 100 characters.", "danger")
+                return render_template(
+                    "edit_marks.html",
+                    mark=mark
+                )
+
             try:
                 obtained = float(marks_obtained)
                 maximum = float(max_marks)
@@ -4006,7 +4049,14 @@ def edit_marks(mark_id: int):
                     mark=mark
                 )
 
-            if maximum <= 0 or obtained < 0 or obtained > maximum:
+            if (
+                not math.isfinite(obtained)
+                or not math.isfinite(maximum)
+                or maximum <= 0
+                or maximum > 999.99
+                or obtained < 0
+                or obtained > maximum
+            ):
                 flash(
                     "Obtained marks must be between 0 and maximum marks.",
                     "danger"
@@ -4015,6 +4065,16 @@ def edit_marks(mark_id: int):
                     "edit_marks.html",
                     mark=mark
                 )
+
+            if exam_date:
+                try:
+                    date.fromisoformat(exam_date)
+                except ValueError:
+                    flash("Enter a valid exam date.", "danger")
+                    return render_template(
+                        "edit_marks.html",
+                        mark=mark
+                    )
 
             # IMPORTANT:
             # Use the actual database column names:
@@ -4159,26 +4219,16 @@ def student_login():
 
             student = cursor.fetchone()
 
-            # Verify hashed passwords; migrate legacy plain-text passwords on successful login.
-            password_matches = False
-            if student:
-                password_value = student.get("password")
-                stored_password = (
-                    password_value if isinstance(password_value, str) else ""
+            password_matches, legacy_password = verify_stored_password(
+                student.get("password") if student else None,
+                password
+            )
+            if student is not None and password_matches and legacy_password:
+                cursor.execute(
+                    "UPDATE students SET password = %s WHERE id = %s",
+                    (generate_password_hash(password), student["id"])
                 )
-                if stored_password.startswith(("scrypt:", "pbkdf2:")):
-                    try:
-                        password_matches = check_password_hash(stored_password, password)
-                    except (ValueError, TypeError):
-                        password_matches = False
-                else:
-                    password_matches = stored_password == password
-                    if password_matches:
-                        cursor.execute(
-                            "UPDATE students SET password = %s WHERE id = %s",
-                            (generate_password_hash(password), student["id"])
-                        )
-                        connection.commit()
+                connection.commit()
 
             if student is not None and password_matches:
                 session.clear()

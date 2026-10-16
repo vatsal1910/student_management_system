@@ -1,6 +1,12 @@
 .env
 .env.*
 !.env.example
+*.dump
+*.sql.gz
+*.sql.zip
+*_dump.sql
+*-dump.sql
+*.bak
 venv/
 .venv/
 __pycache__/

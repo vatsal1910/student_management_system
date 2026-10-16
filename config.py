@@ -7,28 +7,23 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+RUNNING_ON_RENDER = os.environ.get("RENDER", "").lower() == "true"
+SECRET_KEY = os.environ.get("SECRET_KEY")
+if not SECRET_KEY and RUNNING_ON_RENDER:
+    raise RuntimeError("SECRET_KEY must be configured in the Render environment.")
+
 
 class Config:
-    # Flask secret key
-    SECRET_KEY = os.environ.get("SECRET_KEY") or secrets.token_hex(32)
+    SECRET_KEY = SECRET_KEY or secrets.token_hex(32)
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
     SESSION_COOKIE_SECURE = os.environ.get(
         "SESSION_COOKIE_SECURE",
-        "false"
+        "true" if RUNNING_ON_RENDER else "false"
     ).lower() in {"1", "true", "yes"}
 
-    # Select the local MySQL backend or a PostgreSQL deployment backend explicitly.
-    DATABASE_BACKEND = os.environ.get("DATABASE_BACKEND", "mysql").lower()
-    DATABASE_URL = os.environ.get("DATABASE_URL")
-
-    
-    # MySQL database configuration
-    MYSQL_HOST = os.environ.get("MYSQL_HOST", "localhost")
-    MYSQL_PORT = int(os.environ.get("MYSQL_PORT", "3306"))
-    MYSQL_USER = os.environ.get("MYSQL_USER", "root")
+    MYSQL_HOST = os.environ.get("MYSQL_HOST", "")
+    MYSQL_PORT = os.environ.get("MYSQL_PORT", "")
+    MYSQL_USER = os.environ.get("MYSQL_USER", "")
     MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD", "")
-    MYSQL_DATABASE = os.environ.get(
-        "MYSQL_DATABASE",
-        "student_management_system"
-    )
+    MYSQL_DATABASE = os.environ.get("MYSQL_DATABASE", "")
